@@ -1,0 +1,143 @@
+/* Form Constructor Global Styles */
+
+/* Import our design system */
+@import url('./assets/styles/design-system.css');
+@import url('./assets/styles/components.css');
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Reset and normalize */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  font-family: var(--font-family-primary);
+  line-height: var(--line-height-normal);
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  height: 100%;
+  color: var(--gray-900);
+  background-color: var(--gray-50);
+  overflow: hidden;
+}
+
+/* Global accessibility improvements */
+*:focus {
+  outline: none;
+}
+
+.focus-visible:focus-visible {
+  outline: 2px solid var(--primary-600);
+  outline-offset: 2px;
+}
+
+/* Improved contrast for links */
+a {
+  color: var(--primary-600);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-700);
+  text-decoration: underline;
+}
+
+/* Better button reset */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Better input styling */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Remove default list styling */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Better image defaults */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Remove default fieldset styling */
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Better table defaults */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Utility for hiding content visually but keeping it accessible */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Angular Material overwrites if needed */
+.mat-typography {
+  font-family: var(--font-family-primary) !important;
+}
+
+/* Form editor custom styles */
+.form-editor {
+  height: 100%;
+}
+
+.form-canvas {
+  background-color: white;
+}
+
+/* Custom selection highlighting */
+::selection {
+  background-color: var(--primary-200);
+  color: var(--primary-900);
+}
+
+::-moz-selection {
+  background-color: var(--primary-200);
+  color: var(--primary-900);
+}

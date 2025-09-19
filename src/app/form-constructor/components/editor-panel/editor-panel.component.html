@@ -1,0 +1,180 @@
+<div class="editor-panel">
+  <!-- Editor Toolbar -->
+  <div class="editor-toolbar">
+    <div class="toolbar-group">
+      <button class="btn btn-sm" (click)="clearCanvas()" title="Clear Canvas">
+
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+      
+      <div class="toolbar-separator"></div>
+      
+      <button class="btn btn-sm" (click)="exportForm()" title="Generate Code">
+
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="editor-info">
+      <span class="text-sm text-gray-500">
+        {{ hasComponents() ? components().length + ' components' : 'Drag components here' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Editor Canvas Container -->
+  <div class="editor-container">
+    <!-- Editor Canvas -->
+    <div
+      #editorCanvas
+      class="editor-canvas"
+      [class.drag-over]="dragOverState()">
+      
+      <!-- Empty state -->
+      @if (!hasComponents()) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+          </div>
+          <h3 class="empty-title">Start Building Your Form</h3>
+          <p class="empty-subtitle">Drag components from the sidebar to begin</p>
+        </div>
+      }
+
+        <!-- Dropped Components -->
+        @for (component of components(); track component.id) {
+          <div
+            class="dropped-component"
+            [class.selected]="selectedComponentId() === component.id"
+            [attr.data-component-id]="component.id"
+            (click)="onComponentClick(component.id)"
+            draggable="false">
+            
+            <!-- Component Preview -->
+            <div class="component-preview">
+              @switch (component.type) {
+                @case ('text-input') {
+                  <div class="form-group preview" style="width: 250px; margin-bottom: 0.75rem;">
+                    <label class="form-label" style="display: block; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 500;">{{ component.properties.label }}</label>
+                    <input type="text" 
+                           class="form-control" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;"
+                           [placeholder]="component.properties.placeholder"
+                           [disabled]="true">
+                  </div>
+                }
+                
+                @case ('email-input') {
+                  <div class="form-group preview" style="width: 250px; margin-bottom: 0.75rem;">
+                    <label class="form-label" style="display: block; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 500;">{{ component.properties.label }}</label>
+                    <input type="email" 
+                           class="form-control" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;"
+                           [placeholder]="component.properties.placeholder"
+                           [disabled]="true">
+                  </div>
+                }
+                
+                @case ('textarea') {
+                  <div class="form-group preview" style="width: 250px; margin-bottom: 0.75rem;">
+                    <label class="form-label" style="display: block; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 500;">{{ component.properties.label }}</label>
+                    <textarea class="form-control" 
+                              style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; resize: vertical;"
+                              [rows]="component.properties.rows"
+                              [placeholder]="component.properties.placeholder"
+                              [disabled]="true"></textarea>
+                  </div>
+                }
+                
+                @case ('select') {
+                  <div class="form-group preview" style="width: 250px; margin-bottom: 0.75rem;">
+                    <label class="form-label" style="display: block; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 500;">{{ component.properties.label }}</label>
+                    <select class="form-control" 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;"
+                            [disabled]="true">
+                      <option>Choose option</option>
+                      @for (option of component.properties.options; track option) {
+                        <option>{{ option }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+                
+                @case ('checkbox') {
+                  <div class="form-check preview">
+                    <input type="checkbox" 
+                           class="form-check-input" 
+                           [checked]="component.properties.checked"
+                           [disabled]="true">
+                    <label class="form-check-label">{{ component.properties.label }}</label>
+                  </div>
+                }
+                
+                @case ('button') {
+                  <button type="button" 
+                          class="btn btn-{{ component.properties.variant }}"
+                          style="padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: #3b82f6; color: white; cursor: not-allowed; font-weight: 500;"
+                          [disabled]="true">
+                    {{ component.properties.text }}
+                  </button>
+                }
+                
+                @case ('container') {
+                  <div class="form-container preview"
+                       [style.display]="component.properties.layout"
+                       [style.gap]="component.properties.gap">
+                    <p class="text-gray-500 text-center">Container</p>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Component Controls -->
+            <div class="component-controls">
+              <button class="control-btn delete-btn" 
+                      (click)="onComponentDelete(component.id)"
+                      title="Delete Component">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+              
+              <button class="control-btn move-btn" 
+                      (click)="moveComponent(component.id, 'up')"
+                      title="Move Up">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                </svg>
+              </button>
+              
+              <button class="control-btn move-btn" 
+                      (click)="moveComponent(component.id, 'down')"
+                      title="Move Down">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+
+      <!-- Drag overlay -->
+      @if (dragOverState()) {
+        <div class="drag-overlay">
+          <div class="drag-message">
+            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            <span>Drop component here</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
