@@ -73,16 +73,17 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     const properties = componentData.properties || {};
     
     // Basic properties for all components
-    const basicProps = {
-      label: properties.label || 'Label',
-      placeholder: properties.placeholder || '',
-      required: properties.required || false,
-      disabled: properties.disabled || false
-    };
-
-    Object.keys(basicProps).forEach(key => {
-      formControls[key] = new FormControl(basicProps[key as keyof typeof basicProps]);
-    });
+    if (componentData.type !== "container"){
+      const basicProps = {
+        label: properties.label || 'Label',
+        placeholder: properties.placeholder || '',
+        required: properties.required || false,
+        disabled: properties.disabled || false
+      };
+      Object.keys(basicProps).forEach(key => {
+        formControls[key] = new FormControl(basicProps[key as keyof typeof basicProps]);
+      });
+    }
 
     // Component-specific properties
     if (componentData.type === 'text-input' || componentData.type === 'email-input') {
@@ -103,6 +104,21 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
       formControls['variant'] = new FormControl(properties.variant || 'primary');
     }
 
+    // Container-specific properties
+    if (componentData.type === "container") {
+      formControls['layout'] = new FormControl(properties.layout || 'block');
+      formControls['direction'] = new FormControl(properties.direction || 'column');
+      formControls['justifyContent'] = new FormControl(properties.justifyContent || 'flex-start');
+      formControls['alignItems'] = new FormControl(properties.alignItems || 'stretch');
+      formControls['columns'] = new FormControl(properties.columns || 2);
+      formControls['gap'] = new FormControl(properties.gap || 'var(--space-4)');
+      formControls['padding'] = new FormControl(properties.padding || 'var(--space-4)');
+      formControls['margin'] = new FormControl(properties.margin || '0');
+      formControls['borderRadius'] = new FormControl(properties.borderRadius || 'var(--radius-md)');
+      formControls['backgroundColor'] = new FormControl(properties.backgroundColor || 'transparent');
+      formControls['border'] = new FormControl(properties.border || '1px solid var(--gray-200)');
+    }
+
     // Create the reactive form
     const form = this.fb.group(formControls);
     this.propertyForm.set(form);
@@ -118,6 +134,159 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
   }
 
   private createDirectPropertyGroups(componentType: string, formControls: any): PropertyGroup[] {
+    if (componentType === 'container') {
+      // Container property groups
+      const layoutGroup: PropertyGroup = {
+        name: 'layout',
+        label: 'Layout',
+        properties: [],
+        expanded: true
+      };
+      const spacingGroup: PropertyGroup = {
+        name: 'spacing',
+        label: 'Spacing',
+        properties: [],
+        expanded: false
+      };
+      const stylingGroup: PropertyGroup = {
+        name: 'styling',
+        label: 'Styling',
+        properties: [],
+        expanded: false
+      };
+      // Layout properties
+      if (formControls.layout) {
+        layoutGroup.properties.push({
+          name: 'layout',
+          type: 'select',
+          label: 'Layout Type',
+          defaultValue: 'block',
+          options: [
+            { value: 'block', label: 'Block' },
+            { value: 'flex', label: 'Flexbox' },
+            { value: 'grid', label: 'CSS Grid' }
+          ],
+          group: 'layout'
+        });
+      }
+      if (formControls.direction && formControls.layout?.value === 'flex') {
+        layoutGroup.properties.push({
+          name: 'direction',
+          type: 'select',
+          label: 'Flex Direction',
+          defaultValue: 'column',
+          options: [
+            { value: 'row', label: 'Row' },
+            { value: 'column', label: 'Column' },
+            { value: 'row-reverse', label: 'Row Reverse' },
+            { value: 'column-reverse', label: 'Column Reverse' }
+          ],
+          group: 'layout'
+        });
+      }
+      if (formControls.justifyContent && formControls.layout?.value === 'flex') {
+        layoutGroup.properties.push({
+          name: 'justifyContent',
+          type: 'select',
+          label: 'Justify Content',
+          defaultValue: 'flex-start',
+          options: [
+            { value: 'flex-start', label: 'Start' },
+            { value: 'flex-end', label: 'End' },
+            { value: 'center', label: 'Center' },
+            { value: 'space-between', label: 'Space Between' },
+            { value: 'space-around', label: 'Space Around' },
+            { value: 'space-evenly', label: 'Space Evenly' }
+          ],
+          group: 'layout'
+        });
+      }
+      if (formControls.alignItems && formControls.layout?.value === 'flex') {
+        layoutGroup.properties.push({
+          name: 'alignItems',
+          type: 'select',
+          label: 'Align Items',
+          defaultValue: 'stretch',
+          options: [
+            { value: 'stretch', label: 'Stretch' },
+            { value: 'flex-start', label: 'Start' },
+            { value: 'flex-end', label: 'End' },
+            { value: 'center', label: 'Center' },
+            { value: 'baseline', label: 'Baseline' }
+          ],
+          group: 'layout'
+        });
+      }
+      if (formControls.columns && formControls.layout?.value === 'grid') {
+        layoutGroup.properties.push({
+          name: 'columns',
+          type: 'number',
+          label: 'Grid Columns',
+          defaultValue: 2,
+          group: 'layout'
+        });
+      }
+      if (formControls.gap) {
+        layoutGroup.properties.push({
+          name: 'gap',
+          type: 'text',
+          label: 'Gap',
+          defaultValue: 'var(--space-4)',
+          group: 'layout'
+        });
+      }
+      // Spacing properties
+      if (formControls.padding) {
+        spacingGroup.properties.push({
+          name: 'padding',
+          type: 'text',
+          label: 'Padding',
+          defaultValue: 'var(--space-4)',
+          group: 'spacing'
+        });
+      }
+      if (formControls.margin) {
+        spacingGroup.properties.push({
+          name: 'margin',
+          type: 'text',
+          label: 'Margin',
+          defaultValue: '0',
+          group: 'spacing'
+        });
+      }
+      // Styling properties
+      if (formControls.borderRadius) {
+        stylingGroup.properties.push({
+          name: 'borderRadius',
+          type: 'text',
+          label: 'Border Radius',
+          defaultValue: 'var(--radius-md)',
+          group: 'styling'
+        });
+      }
+      if (formControls.backgroundColor) {
+        stylingGroup.properties.push({
+          name: 'backgroundColor',
+          type: 'color',
+          label: 'Background Color',
+          defaultValue: 'transparent',
+          group: 'styling'
+        });
+      }
+      if (formControls.border) {
+        stylingGroup.properties.push({
+          name: 'border',
+          type: 'text',
+          label: 'Border',
+          defaultValue: '1px solid var(--gray-200)',
+          group: 'styling'
+        });
+      }
+      // Only return groups with properties
+      return [layoutGroup, spacingGroup, stylingGroup].filter(g => g.properties.length > 0);
+    }
+
+    // Default groups for other component types
     const groups: PropertyGroup[] = [
       {
         name: 'content',

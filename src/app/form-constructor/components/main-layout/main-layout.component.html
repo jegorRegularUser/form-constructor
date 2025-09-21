@@ -1,4 +1,4 @@
-<div [ngClass]="layoutClasses()" (window:resize)="onResize()">
+<div [ngClass]="layoutClasses()" (window:resize)="onResize()" cdkDropListGroup>
   <!-- Header Section -->
   <header class="header">
     <div class="flex items-center justify-between h-full px-4">
@@ -97,47 +97,47 @@
       <!-- Component Categories with Drag and Drop -->
       <div class="component-category">
         <h3 class="component-category-title">Form Elements</h3>
-        <div class="component-grid">
+        <div class="component-grid" cdkDropList id="sidebar-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'text-input')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'text-input'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'text-input')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             <span class="component-block-label">Text Input</span>
           </div>
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'email-input')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'email-input'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'email-input')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
             </svg>
             <span class="component-block-label">Email</span>
           </div>
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'textarea')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'textarea'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'textarea')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707L13.293 3.293A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
             </svg>
             <span class="component-block-label">Textarea</span>
           </div>
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'select')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'select'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'select')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
             </svg>
             <span class="component-block-label">Select</span>
           </div>
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'checkbox')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'checkbox'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'checkbox')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -148,11 +148,11 @@
 
       <div class="component-category">
         <h3 class="component-category-title">Layout</h3>
-        <div class="component-grid">
+        <div class="component-grid" cdkDropList id="sidebar-layout-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'container')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'container'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'container')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
@@ -163,11 +163,11 @@
 
       <div class="component-category">
         <h3 class="component-category-title">Actions</h3>
-        <div class="component-grid">
+        <div class="component-grid" cdkDropList id="sidebar-actions-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
-               draggable="true"
-               (dragstart)="onDragStart($event, 'button')"
-               (dragend)="onDragEnd($event)">
+               cdkDrag
+               [cdkDragData]="'button'"
+               (cdkDragStarted)="onSidebarDragStart($event, 'button')">
             <svg class="component-block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
             </svg>
@@ -181,8 +181,8 @@
   <!-- Editor Section -->
   @if (showEditor()) {
     <main class="editor">
-      <div class="editor-container" (dragover)="onDragOver($event)">
-        <app-editor-panel></app-editor-panel>
+      <div class="editor-container">
+        <app-editor-panel style="height: 100%;"></app-editor-panel>
       </div>
     </main>
   }

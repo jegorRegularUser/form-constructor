@@ -1,5 +1,6 @@
 import { Component, signal, computed, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CdkDrag, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { EditorPanelService } from '../editor-panel/editor-panel.service';
 import { PropertyPanelComponent } from '../property-panel/property-panel.component';
 import { PreviewPanelComponent } from '../preview-panel/preview-panel.component';
@@ -8,11 +9,16 @@ import { EditorPanelComponent } from '../editor-panel/editor-panel.component';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, PropertyPanelComponent, PreviewPanelComponent, EditorPanelComponent],
+  imports: [CommonModule, CdkDrag, CdkDropList, CdkDropListGroup, PropertyPanelComponent, PreviewPanelComponent, EditorPanelComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
 export class MainLayoutComponent implements AfterViewInit, OnDestroy {
+  
+  // Debug method for drag events
+  onSidebarDragStart(event: any, componentType: string) {
+    console.log('📦 Sidebar drag started:', { componentType, event });
+  }
   private editorService = inject(EditorPanelService);
   
   @ViewChild('editorContainer', { static: false }) editorContainer!: ElementRef<HTMLElement>;
@@ -57,15 +63,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   private hasUnsavedChanges = signal(false);
   readonly unsavedChanges = computed(() => this.hasUnsavedChanges());
 
-  ngAfterViewInit(): void {
-    // Setup event listeners for form changes
-    this.setupFormChangeListeners();
-    
-    // Initialize preview synchronization
-    this.initializePreviewSync();
-    
-    console.log('Editor initialized successfully');
-  }
+
 
   ngOnDestroy(): void {
     // Cleanup event listeners if needed
@@ -219,38 +217,20 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Drag and drop handling for component blocks
-  onDragStart(event: DragEvent, componentType: string): void {
-    if (event.dataTransfer) {
-      event.dataTransfer.setData('text/plain', componentType);
-      event.dataTransfer.effectAllowed = 'copy';
-      
-      // Add visual feedback
-      const target = event.target as HTMLElement;
-      target.classList.add('dragging');
-      
-      console.log(`Started dragging: ${componentType}`);
-    }
-  }
 
-  onDragEnd(event: DragEvent): void {
-    const target = event.target as HTMLElement;
-    target.classList.remove('dragging');
-  }
-  
-  /**
-   * Handle drag over event for the editor canvas
-   */
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.dataTransfer!.dropEffect = 'copy';
-  }
   
   private lastFormChangeTimestamp = 0;
 
   /**
    * Setup event listeners for form changes
    */
+  ngAfterViewInit(): void {
+    console.log('🏠 MainLayoutComponent initialized');
+    this.setupFormChangeListeners();
+    this.initializePreviewSync();
+    console.log('Editor initialized successfully');
+  }
+
   private setupFormChangeListeners(): void {
     // Listen for custom form changed events
     window.addEventListener('form:changed', (event: any) => {

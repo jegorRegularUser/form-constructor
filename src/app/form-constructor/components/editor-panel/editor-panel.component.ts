@@ -1,5 +1,6 @@
-import { Component, signal, computed, ElementRef, ViewChild, inject, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, ElementRef, ViewChild, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CdkDragDrop, CdkDrag, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { EditorPanelService } from './editor-panel.service';
 
 interface DroppedComponent {
@@ -7,16 +8,18 @@ interface DroppedComponent {
   type: string;
   label: string;
   properties: any;
+  children?: DroppedComponent[];
+  parentId?: string | null;
 }
 
 @Component({
   selector: 'app-editor-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CdkDrag, CdkDropList],
   templateUrl: './editor-panel.component.html',
   styleUrl: './editor-panel.component.css'
 })
-export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
+export class EditorPanelComponent implements OnInit, OnDestroy {
   private editorService = inject(EditorPanelService);
   
   @ViewChild('editorCanvas', { static: false }) editorCanvas!: ElementRef<HTMLElement>;
@@ -24,136 +27,189 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
   // Editor state
   private droppedComponents = signal<DroppedComponent[]>([]);
   public selectedComponentId = signal<string | null>(null);
-  private isDragOver = signal(false);
+  private selectedContainerId = signal<string | null>(null);
+  private updateTimeout: any;
 
   // Computed properties
   readonly components = computed(() => this.droppedComponents());
   readonly selectedComponent = computed(() => {
     const id = this.selectedComponentId();
-    return id ? this.droppedComponents().find(c => c.id === id) : null;
+    return id ? this.findComponentById(id, this.droppedComponents()) : null;
   });
   readonly hasComponents = computed(() => this.droppedComponents().length > 0);
-  readonly dragOverState = computed(() => this.isDragOver());
+
+  // CDK Event handlers for debugging
+  onDragStarted(event: any) {
+    console.log('🚀 Drag started:', event);
+  }
+
+  onDragEntered(event: any) {
+    console.log('🎯 Drag entered drop zone:', event);
+  }
+
+  onDragExited(event: any) {
+    console.log('🚪 Drag exited drop zone:', event);
+  }
 
   ngOnInit(): void {
+    console.log('🚀 EditorPanelComponent initialized');
+    console.log('📊 Initial components:', this.components());
     this.setupPropertyListener();
   }
 
-  ngAfterViewInit(): void {
-    this.setupNativeDragDrop();
-  }
-
   ngOnDestroy(): void {
-    // Clear any pending timeouts
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
     }
   }
 
-  private setupNativeDragDrop(): void {
-    if (this.editorCanvas?.nativeElement) {
-      const canvas = this.editorCanvas.nativeElement;
-      
-      canvas.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer!.dropEffect = 'copy';
-        this.isDragOver.set(true);
-      });
-
-      canvas.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        if (e.clientX < rect.left || e.clientX > rect.right ||
-            e.clientY < rect.top || e.clientY > rect.bottom) {
-          this.isDragOver.set(false);
-        }
-      });
-
-      canvas.addEventListener('drop', (e) => {
-        e.preventDefault();
-        this.isDragOver.set(false);
-        this.handleDrop(e);
-      });
-      
-      console.log('Native drag-and-drop setup complete');
-    }
-  }
-
-  private handleDrop(event: DragEvent): void {
-    try {
-      const componentType = event.dataTransfer?.getData('text/plain');
-      if (!componentType) {
-        console.log('No component type in drag data');
-        return;
-      }
-
-      const newComponent: DroppedComponent = {
-        id: this.generateId(),
-        type: componentType,
-        label: this.getComponentLabel(componentType),
-        properties: this.getDefaultProperties(componentType)
-      };
-
-      this.droppedComponents.update(components => [...components, newComponent]);
-      console.log('Component dropped:', newComponent);
-      
-      // Add to editor service
-      this.editorService.addComponent({
-        id: newComponent.id,
-        type: newComponent.type,
-        label: newComponent.label,
-        properties: newComponent.properties
-      });
-      
-      // Auto-select the new component
-      this.selectedComponentId.set(newComponent.id);
-      
-      // Trigger preview update with debouncing
-      this.debouncedPreviewUpdate();
-    } catch (error) {
-      console.error('Error handling drop:', error);
-    }
-  }
-
-  onComponentClick(componentId: string): void {
-    this.selectedComponentId.set(componentId);
-    console.log('Component selected:', componentId);
+  // CDK Drop handlers
+  onDrop(event: CdkDragDrop<DroppedComponent[]>) {
+    console.log('🎯 DROP EVENT TRIGGERED!');
+    console.log('📦 Event details:', {
+      previousContainer: event.previousContainer.id,
+      currentContainer: event.container.id,
+      previousIndex: event.previousIndex,
+      currentIndex: event.currentIndex,
+      itemData: event.item.data,
+      previousData: event.previousContainer.data,
+      currentData: event.container.data
+    });
     
-    // Emit selection to property panel
-    const component = this.droppedComponents().find(c => c.id === componentId);
-    if (component) {
-      window.dispatchEvent(new CustomEvent('component-selected', {
-        detail: component
-      }));
+    if (event.previousContainer === event.container) {
+      console.log('🔄 Reordering within same container');
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      this.droppedComponents.set([...event.container.data]);
+    } else {
+      const isFromSidebar = event.previousContainer.data.length === 0;
+      const componentData = event.item.data;
+      
+      console.log('🔍 Cross-container drop analysis:', {
+        isFromSidebar,
+        componentDataType: typeof componentData,
+        componentData
+      });
+      
+      if (isFromSidebar && typeof componentData === 'string') {
+        console.log('✅ Adding new component from sidebar:', componentData);
+        this.addNewComponent(componentData, event.currentIndex);
+      } else if (!isFromSidebar) {
+        console.log('🔄 Moving existing component between containers');
+        transferArrayItem(
+          event.previousContainer.data,
+          event.container.data,
+          event.previousIndex,
+          event.currentIndex
+        );
+        this.droppedComponents.set([...event.container.data]);
+      } else {
+        console.log('❌ Drop condition not met:', { isFromSidebar, componentDataType: typeof componentData });
+      }
     }
+    
+    console.log('📊 Components after drop:', this.components());
+    this.debouncedPreviewUpdate();
   }
 
-  // Move component up/down in the list
-  moveComponent(componentId: string, direction: 'up' | 'down'): void {
-    try {
-      const components = this.droppedComponents();
-      const index = components.findIndex(c => c.id === componentId);
-      
-      if (index === -1) return;
-      
-      const newIndex = direction === 'up' ? index - 1 : index + 1;
-      if (newIndex < 0 || newIndex >= components.length) return;
-      
-      const newComponents = [...components];
-      [newComponents[index], newComponents[newIndex]] = [newComponents[newIndex], newComponents[index]];
-      
-      this.droppedComponents.set(newComponents);
-      this.debouncedPreviewUpdate();
-    } catch (error) {
-      console.error('Error moving component:', error);
+  onContainerDrop(event: CdkDragDrop<DroppedComponent[]>, container: DroppedComponent) {
+    console.log('🗂️ Container drop:', { container: container.id, event });
+    if (!container.children) container.children = [];
+    if (event.previousContainer === event.container) {
+      moveItemInArray(container.children, event.previousIndex, event.currentIndex);
+    } else {
+      const isFromSidebar = event.previousContainer.id.includes('sidebar');
+      const componentData = event.item.data;
+      console.log('📦 Container drop analysis:', { isFromSidebar, componentData, previousId: event.previousContainer.id });
+      if (isFromSidebar && typeof componentData === 'string') {
+        const newComponent = this.createComponent(componentData);
+        newComponent.parentId = container.id;
+        container.children.splice(event.currentIndex, 0, newComponent);
+        console.log('✅ Added to container:', newComponent);
+      } else if (!isFromSidebar && typeof componentData === 'object') {
+        // Remove from previous parent if moving from another container
+        this.findAndRemoveComponentById(componentData.id, this.droppedComponents());
+        // Add to new container
+        componentData.parentId = container.id;
+        container.children.splice(event.currentIndex, 0, componentData);
+        console.log('🔄 Moved to container:', componentData);
+      }
     }
+    this.droppedComponents.set([...this.droppedComponents()]);
+    this.debouncedPreviewUpdate();
+  }
+
+  // Component creation and management
+  private addNewComponent(type: string, index: number) {
+    console.log('🏗️ Creating new component:', { type, index });
+    const newComponent = this.createComponent(type);
+    console.log('✨ New component created:', newComponent);
+    
+    const beforeCount = this.droppedComponents().length;
+    
+    this.droppedComponents.update(components => {
+      const newComps = [...components];
+      const insertIndex = Math.min(index, newComps.length);
+      newComps.splice(insertIndex, 0, newComponent);
+      console.log('📝 Components array updated:', {
+        before: components.length,
+        after: newComps.length,
+        insertIndex,
+        newComps
+      });
+      return newComps;
+    });
+    
+    const afterCount = this.droppedComponents().length;
+    console.log('📊 Component count change:', { before: beforeCount, after: afterCount });
+    
+    this.editorService.addComponent({
+      id: newComponent.id,
+      type: newComponent.type,
+      label: newComponent.label,
+      properties: newComponent.properties
+    });
+    
+    this.selectedComponentId.set(newComponent.id);
+    console.log('✅ Component addition completed');
+  }
+
+  private createComponent(type: string): DroppedComponent {
+    return {
+      id: this.generateId(),
+      type: type,
+      label: this.getComponentLabel(type),
+      properties: this.getDefaultProperties(type),
+      children: type === 'container' ? [] : undefined,
+      parentId: null
+    };
+  }
+
+  onComponentClick(component: DroppedComponent, event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    this.selectedComponentId.set(component.id);
+    if (component.type === 'container') {
+      this.selectedContainerId.set(component.id);
+    } else {
+      this.selectedContainerId.set(null);
+    }
+    
+    window.dispatchEvent(new CustomEvent('component-selected', {
+      detail: component
+    }));
   }
 
   // Delete component
-  onComponentDelete(componentId: string): void {
+  onComponentDelete(componentId: string, event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
+    
     try {
       this.droppedComponents.update(components => 
-        components.filter(c => c.id !== componentId)
+        this.removeComponentById(components, componentId)
       );
       
       this.editorService.removeComponent(componentId);
@@ -167,9 +223,19 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('Error deleting component:', error);
     }
   }
-  
+
+  private removeComponentById(components: DroppedComponent[], id: string): DroppedComponent[] {
+    return components.filter(comp => {
+      if (comp.id === id) return false;
+      if (comp.children) {
+        comp.children = this.removeComponentById(comp.children, id);
+      }
+      return true;
+    });
+  }
+
   // Clear all components
-  clearCanvas(): void {
+  clearCanvas() {
     try {
       this.droppedComponents.set([]);
       this.editorService.clearComponents();
@@ -179,9 +245,9 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('Error clearing canvas:', error);
     }
   }
-  
+
   // Export form
-  exportForm(): void {
+  exportForm() {
     const html = this.editorService.generateFormHtml();
     const components = this.droppedComponents();
     
@@ -200,6 +266,7 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
     URL.revokeObjectURL(url);
   }
 
+  // Utility methods
   private generateId(): string {
     return 'comp_' + Math.random().toString(36).substr(2, 9);
   }
@@ -256,27 +323,16 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
     return defaults[type] || {};
   }
 
-  private lastUpdateTime = 0;
-  private updateTimeout: any;
-
   private setupPropertyListener(): void {
-    // Listen for property updates from property panel
     window.addEventListener('component-property-updated', (event: any) => {
       try {
         const { componentId, properties } = event.detail;
         
         this.droppedComponents.update(components =>
-          components.map(comp =>
-            comp.id === componentId
-              ? { ...comp, properties: { ...comp.properties, ...properties } }
-              : comp
-          )
+          this.updateComponentProperties(components, componentId, properties)
         );
         
-        // Update editor service
         this.editorService.updateComponent(componentId, properties);
-        
-        // Trigger preview update with debouncing
         this.debouncedPreviewUpdate();
       } catch (error) {
         console.error('Error handling property update:', error);
@@ -284,43 +340,102 @@ export class EditorPanelComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private updateComponentProperties(components: DroppedComponent[], componentId: string, properties: any): DroppedComponent[] {
+    return components.map(comp => {
+      if (comp.id === componentId) {
+        return { ...comp, properties: { ...comp.properties, ...properties } };
+      }
+      if (comp.children) {
+        return { ...comp, children: this.updateComponentProperties(comp.children, componentId, properties) };
+      }
+      return comp;
+    });
+  }
+
   private debouncedPreviewUpdate(): void {
-    // Clear existing timeout
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
     }
     
-    // Set new timeout
     this.updateTimeout = setTimeout(() => {
       this.triggerPreviewUpdate();
-    }, 300); // 300ms debounce
+    }, 300);
   }
 
   private triggerPreviewUpdate(): void {
     try {
-      // Prevent rapid-fire updates
-      const now = Date.now();
-      if (now - this.lastUpdateTime < 100) {
-        return;
-      }
-      this.lastUpdateTime = now;
-
-      // Generate HTML and emit form change event
       const html = this.editorService.generateFormHtml();
       window.dispatchEvent(new CustomEvent('form:changed', {
         detail: { 
           html,
           components: this.droppedComponents(),
-          timestamp: now
+          timestamp: Date.now()
         }
       }));
     } catch (error) {
       console.error('Error triggering preview update:', error);
     }
   }
-  
-  // Handle drag over for component reordering
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
+
+  findComponentById(id: string, list: DroppedComponent[]): DroppedComponent | null {
+    for (const comp of list) {
+      if (comp.id === id) return comp;
+      if (comp.children) {
+        const found = this.findComponentById(id, comp.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  getFilteredChildren(component: DroppedComponent): DroppedComponent[] {
+    return (component.children ?? []).filter((x): x is DroppedComponent => !!x);
+  }
+
+  getContainerConnectedLists(containerId: string): string[] {
+    const baseLists = ['sidebar-list', 'sidebar-layout-list', 'sidebar-actions-list', 'main-editor-list'];
+    const containerLists = this.getAllContainerIds().filter(id => id !== containerId);
+    return [...baseLists, ...containerLists];
+  }
+
+  private getAllContainerIds(): string[] {
+    const containerIds: string[] = [];
+    
+    const findContainers = (components: DroppedComponent[]) => {
+      components.forEach(comp => {
+        if (comp.type === 'container') {
+          containerIds.push(`container-${comp.id}`);
+          if (comp.children) {
+            findContainers(comp.children);
+          }
+        }
+      });
+    };
+    
+    findContainers(this.droppedComponents());
+    return containerIds;
+  }
+
+  /**
+   * Рекурсивно ищет и удаляет компонент по id из вложенной структуры
+   */
+  private findAndRemoveComponentById(id: string, components: DroppedComponent[]): boolean {
+    for (let i = 0; i < components.length; i++) {
+      const comp = components[i];
+      if (comp.id === id) {
+        components.splice(i, 1);
+        return true;
+      }
+      if (comp.children && comp.children.length) {
+        const removed = this.findAndRemoveComponentById(id, comp.children);
+        if (removed) return true;
+      }
+    }
+    return false;
+  }
+
+  private removeFromParent(componentId: string): void {
+    this.findAndRemoveComponentById(componentId, this.droppedComponents());
+    this.droppedComponents.set([...this.droppedComponents()]);
   }
 }
