@@ -192,8 +192,8 @@ import grapesjs from 'grapesjs';
 
 @Injectable({ providedIn: 'root' })
 export class GrapesJSService {
-  private editor = signal<grapesjs.Editor | null>(null);
-  private selectedComponent = signal<grapesjs.Component | null>(null);
+  public editor = signal<grapesjs.Editor | null>(null);
+  public selectedComponent = signal<grapesjs.Component | null>(null);
   
   // Public readonly signals
   readonly isEditorReady = computed(() => this.editor() !== null);
@@ -223,7 +223,7 @@ export class GrapesJSService {
     return editor;
   }
 
-  private customAngularPlugin = (editor: grapesjs.Editor) => {
+  public customAngularPlugin = (editor: grapesjs.Editor) => {
     const blockManager = editor.Blocks;
     const domComponents = editor.DomComponents;
 
@@ -237,7 +237,7 @@ export class GrapesJSService {
     this.setupCustomTraits(editor);
   };
 
-  private registerAngularComponents(domComponents: any) {
+  public registerAngularComponents(domComponents: any) {
     // Angular Input Component
     domComponents.addType('angular-input', {
       model: {
@@ -328,7 +328,7 @@ export class GrapesJSService {
     editor.setStyle(data.styles);
   }
 
-  private setupEventListeners(editor: grapesjs.Editor): void {
+  public setupEventListeners(editor: grapesjs.Editor): void {
     editor.on('component:selected', (component) => {
       this.selectedComponent.set(component);
     });
@@ -351,7 +351,7 @@ export class GrapesJSService {
 // core/services/code-generator.service.ts
 @Injectable({ providedIn: 'root' })
 export class CodeGeneratorService {
-  private templates = new Map<string, ComponentTemplate>();
+  public templates = new Map<string, ComponentTemplate>();
 
   constructor() {
     this.initializeTemplates();
@@ -374,7 +374,7 @@ export class CodeGeneratorService {
     };
   }
 
-  private generateTypeScript(context: GenerationContext): string {
+  public generateTypeScript(context: GenerationContext): string {
     const template = `import { Component, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 ${this.generateAdditionalImports(context)}
@@ -391,7 +391,7 @@ export class ${this.pascalCase(context.name)}Component {
   
   ${this.generateFormGroup(context)}
 
-  constructor(private fb: FormBuilder) {
+  constructor(public fb: FormBuilder) {
     ${this.generateFormInitialization(context)}
   }
 
@@ -405,14 +405,14 @@ export class ${this.pascalCase(context.name)}Component {
     return this.formatCode(template);
   }
 
-  private generateTemplate(context: GenerationContext): string {
+  public generateTemplate(context: GenerationContext): string {
     const components = context.structure.components || [];
     return `<form [formGroup]="form" (ngSubmit)="onSubmit()">
 ${this.generateComponentsHTML(components, 1)}
 </form>`;
   }
 
-  private generateComponentsHTML(components: BaseComponent[], depth: number): string {
+  public generateComponentsHTML(components: BaseComponent[], depth: number): string {
     const indent = '  '.repeat(depth);
     
     return components.map(component => {
@@ -456,7 +456,7 @@ ${indent}</div>`;
     }).join('\n');
   }
 
-  private generateValidationErrors(component: BaseComponent, depth: number): string {
+  public generateValidationErrors(component: BaseComponent, depth: number): string {
     const indent = '  '.repeat(depth);
     const controlName = (component as FormComponent).formControlName || component.id;
     
@@ -471,7 +471,7 @@ ${indent}  </div>`
 ${indent}</div>`;
   }
 
-  private generateFormGroup(context: GenerationContext): string {
+  public generateFormGroup(context: GenerationContext): string {
     const formControls = this.extractFormControls(context.structure.components || []);
     
     const controls = formControls.map(control => {
@@ -486,7 +486,7 @@ ${controls}
   });`;
   }
 
-  private generateValidators(rules: ValidationRule[]): string {
+  public generateValidators(rules: ValidationRule[]): string {
     if (!rules.length) return '';
     
     const validators = rules.map(rule => {
@@ -509,7 +509,7 @@ ${controls}
     return validators.length === 1 ? validators[0] : `[${validators.join(', ')}]`;
   }
 
-  private formatCode(code: string): string {
+  public formatCode(code: string): string {
     // Basic code formatting - could integrate with Prettier
     return code
       .split('\n')
@@ -551,11 +551,11 @@ ${controls}
 // core/services/dynamic-renderer.service.ts
 @Injectable({ providedIn: 'root' })
 export class DynamicRendererService {
-  private componentCache = new Map<string, ComponentRef<any>>();
+  public componentCache = new Map<string, ComponentRef<any>>();
 
   constructor(
-    private viewContainerRef: ViewContainerRef,
-    private componentFactoryResolver: ComponentFactoryResolver
+    public viewContainerRef: ViewContainerRef,
+    public componentFactoryResolver: ComponentFactoryResolver
   ) {}
 
   renderComponent(
@@ -574,7 +574,7 @@ export class DynamicRendererService {
     return component;
   }
 
-  private createComponent(
+  public createComponent(
     definition: ComponentDefinition,
     container: ViewContainerRef
   ): ComponentRef<any> {
@@ -591,7 +591,7 @@ export class DynamicRendererService {
     return componentRef;
   }
 
-  private getComponentType(type: ComponentType): any {
+  public getComponentType(type: ComponentType): any {
     const componentMap = {
       'input': DynamicInputComponent,
       'select': DynamicSelectComponent,
@@ -853,7 +853,7 @@ const PreviewIframeComponent = lazy(() => import('./preview-iframe/preview-ifram
 })
 export class EditorPanelComponent {
   // Use signals for reactive state
-  private selectedComponent = signal<Component | null>(null);
+  public selectedComponent = signal<Component | null>(null);
   
   // Use computed for derived state
   readonly hasSelection = computed(() => this.selectedComponent() !== null);
@@ -871,7 +871,7 @@ export class EditorPanelComponent {
   // ...
 })
 export class EditorComponent implements OnDestroy {
-  private destroyRef = inject(DestroyRef);
+  public destroyRef = inject(DestroyRef);
   
   ngOnInit() {
     // Auto-cleanup with takeUntilDestroyed

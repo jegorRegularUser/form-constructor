@@ -26,13 +26,13 @@ export interface RenderContext {
   providedIn: 'root'
 })
 export class DynamicRendererService {
-  private fb = inject(FormBuilder);
-  private injector = inject(EnvironmentInjector);
+  public fb = inject(FormBuilder);
+  public injector = inject(EnvironmentInjector);
 
   // Component registry for dynamic creation
-  private componentRegistry = new Map<string, Type<any>>();
-  private renderedComponents = signal<Map<string, RenderedComponent>>(new Map());
-  private currentFormGroup = signal<FormGroup | null>(null);
+  public componentRegistry = new Map<string, Type<any>>();
+  public renderedComponents = signal<Map<string, RenderedComponent>>(new Map());
+  public currentFormGroup = signal<FormGroup | null>(null);
 
   // Computed properties
   readonly hasRenderedComponents = computed(() => this.renderedComponents().size > 0);
@@ -48,7 +48,7 @@ export class DynamicRendererService {
   /**
    * Initialize the component registry with available dynamic components
    */
-  private initializeComponentRegistry(): void {
+  public initializeComponentRegistry(): void {
     // Register basic HTML elements as fallbacks
     this.componentRegistry.set('input', this.createInputComponentType());
     this.componentRegistry.set('select', this.createSelectComponentType());
@@ -92,7 +92,7 @@ export class DynamicRendererService {
   /**
    * Create form group from structure
    */
-  private createFormGroup(structure: any): FormGroup {
+  public createFormGroup(structure: any): FormGroup {
     const controls: { [key: string]: FormControl } = {};
     
     if (structure.components) {
@@ -105,7 +105,7 @@ export class DynamicRendererService {
   /**
    * Extract form controls from component structure
    */
-  private extractFormControls(components: any[], controls: { [key: string]: FormControl }): void {
+  public extractFormControls(components: any[], controls: { [key: string]: FormControl }): void {
     components.forEach(component => {
       // Check if component has form control name
       const formControlName = this.getFormControlName(component);
@@ -125,7 +125,7 @@ export class DynamicRendererService {
   /**
    * Render components in view container
    */
-  private renderComponents(components: any[], context: RenderContext): void {
+  public renderComponents(components: any[], context: RenderContext): void {
     components.forEach(component => {
       try {
         const renderedComponent = this.renderSingleComponent(component, context);
@@ -145,7 +145,7 @@ export class DynamicRendererService {
   /**
    * Render a single component
    */
-  private renderSingleComponent(component: any, context: RenderContext): RenderedComponent | null {
+  public renderSingleComponent(component: any, context: RenderContext): RenderedComponent | null {
     const componentType = this.getComponentType(component);
     const ComponentClass = this.componentRegistry.get(componentType);
 
@@ -197,7 +197,7 @@ export class DynamicRendererService {
   /**
    * Create basic input component type
    */
-  private createInputComponentType(): Type<any> {
+  public createInputComponentType(): Type<any> {
     return class DynamicInputComponent {
       value: string = '';
       placeholder: string = '';
@@ -210,7 +210,7 @@ export class DynamicRendererService {
   /**
    * Create basic select component type
    */
-  private createSelectComponentType(): Type<any> {
+  public createSelectComponentType(): Type<any> {
     return class DynamicSelectComponent {
       value: string = '';
       options: any[] = [];
@@ -223,7 +223,7 @@ export class DynamicRendererService {
   /**
    * Create basic checkbox component type
    */
-  private createCheckboxComponentType(): Type<any> {
+  public createCheckboxComponentType(): Type<any> {
     return class DynamicCheckboxComponent {
       checked: boolean = false;
       value: string = 'true';
@@ -235,7 +235,7 @@ export class DynamicRendererService {
   /**
    * Create basic textarea component type
    */
-  private createTextareaComponentType(): Type<any> {
+  public createTextareaComponentType(): Type<any> {
     return class DynamicTextareaComponent {
       value: string = '';
       placeholder: string = '';
@@ -248,7 +248,7 @@ export class DynamicRendererService {
   /**
    * Create basic button component type
    */
-  private createButtonComponentType(): Type<any> {
+  public createButtonComponentType(): Type<any> {
     return class DynamicButtonComponent {
       text: string = 'Button';
       type: string = 'button';
@@ -261,7 +261,7 @@ export class DynamicRendererService {
   /**
    * Create basic container component type
    */
-  private createContainerComponentType(): Type<any> {
+  public createContainerComponentType(): Type<any> {
     return class DynamicContainerComponent {
       layout: string = 'block';
       gap: string = 'var(--space-4)';
@@ -272,25 +272,25 @@ export class DynamicRendererService {
   /**
    * Helper methods
    */
-  private getComponentType(component: any): string {
+  public getComponentType(component: any): string {
     return component.type || component.get?.('type') || 'div';
   }
 
-  private getFormControlName(component: any): string | null {
+  public getFormControlName(component: any): string | null {
     return component.formControlName || 
            component.get?.('formControlName') || 
            component.attributes?.name ||
            null;
   }
 
-  private getDefaultValue(component: any): any {
+  public getDefaultValue(component: any): any {
     return component.defaultValue || 
            component.get?.('defaultValue') || 
            component.attributes?.value || 
            '';
   }
 
-  private createValidators(component: any): any[] {
+  public createValidators(component: any): any[] {
     const validators: any[] = [];
     
     if (component.required || component.get?.('required')) {
@@ -315,7 +315,7 @@ export class DynamicRendererService {
     return validators;
   }
 
-  private setComponentProperties(componentRef: ComponentRef<any>, component: any): void {
+  public setComponentProperties(componentRef: ComponentRef<any>, component: any): void {
     const instance = componentRef.instance;
     
     // Set basic properties
@@ -339,7 +339,7 @@ export class DynamicRendererService {
     }
   }
 
-  private bindFormControl(componentRef: ComponentRef<any>, formControl: FormControl): void {
+  public bindFormControl(componentRef: ComponentRef<any>, formControl: FormControl): void {
     const instance = componentRef.instance;
     
     // Bind value changes
@@ -357,7 +357,7 @@ export class DynamicRendererService {
     }
   }
 
-  private extractProperties(component: any): any {
+  public extractProperties(component: any): any {
     const properties: any = {};
     
     if (component.attributes) {
@@ -377,14 +377,14 @@ export class DynamicRendererService {
     return properties;
   }
 
-  private extractStyling(component: any): any {
+  public extractStyling(component: any): any {
     return {
       classes: component.getClasses ? component.getClasses() : [],
       styles: component.getStyle ? component.getStyle() : {}
     };
   }
 
-  private extractValidation(component: any): ValidationRule[] {
+  public extractValidation(component: any): ValidationRule[] {
     const validation: ValidationRule[] = [];
     
     if (component.get?.('required')) {

@@ -17,13 +17,13 @@ import { SerializationService } from './serialization.service';
   providedIn: 'root'
 })
 export class ExportService {
-  private codeGenerator = inject(CodeGeneratorService);
-  private serialization = inject(SerializationService);
+  public codeGenerator = inject(CodeGeneratorService);
+  public serialization = inject(SerializationService);
 
   // Export state management
-  private exportInProgress = signal(false);
-  private lastExportResult = signal<ExportResult | null>(null);
-  private exportHistory = signal<ExportResult[]>([]);
+  public exportInProgress = signal(false);
+  public lastExportResult = signal<ExportResult | null>(null);
+  public exportHistory = signal<ExportResult[]>([]);
 
   // Computed properties
   readonly isExporting = computed(() => this.exportInProgress());
@@ -262,7 +262,7 @@ export class ExportService {
   /**
    * Create ZIP download package
    */
-  private async createZipDownload(files: ExportedFile[], filename: string): Promise<string> {
+  public async createZipDownload(files: ExportedFile[], filename: string): Promise<string> {
     const zip = new JSZip();
     
     files.forEach(file => {
@@ -278,7 +278,7 @@ export class ExportService {
   /**
    * Create complete Angular project download
    */
-  private async createProjectDownload(
+  public async createProjectDownload(
     files: ExportedFile[], 
     component: GeneratedComponent, 
     config: CodeGenerationConfig
@@ -318,7 +318,7 @@ export class ExportService {
   /**
    * Create file object
    */
-  private createFile(name: string, content: string, type: string): ExportedFile {
+  public createFile(name: string, content: string, type: string): ExportedFile {
     const mimeTypes = {
       'typescript': 'text/typescript',
       'template': 'text/html',
@@ -339,7 +339,7 @@ export class ExportService {
   /**
    * Generate project files
    */
-  private generateMainTs(): string {
+  public generateMainTs(): string {
     return `import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 
@@ -347,7 +347,7 @@ bootstrapApplication(AppComponent)
   .catch(err => console.error(err));`;
   }
 
-  private generateIndexHtml(componentName: string): string {
+  public generateIndexHtml(componentName: string): string {
     return `<!doctype html>
 <html lang="en">
 <head>
@@ -363,7 +363,7 @@ bootstrapApplication(AppComponent)
 </html>`;
   }
 
-  private generateAngularJson(projectName: string): string {
+  public generateAngularJson(projectName: string): string {
     return JSON.stringify({
       "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
       "version": 1,
@@ -404,7 +404,7 @@ bootstrapApplication(AppComponent)
     }, null, 2);
   }
 
-  private generatePackageJson(config: CodeGenerationConfig): string {
+  public generatePackageJson(config: CodeGenerationConfig): string {
     return JSON.stringify({
       "name": this.kebabCase(config.componentName),
       "version": "0.0.0",
@@ -445,7 +445,7 @@ bootstrapApplication(AppComponent)
     }, null, 2);
   }
 
-  private generateTsConfig(): string {
+  public generateTsConfig(): string {
     return JSON.stringify({
       "compileOnSave": false,
       "compilerOptions": {
@@ -476,7 +476,7 @@ bootstrapApplication(AppComponent)
     }, null, 2);
   }
 
-  private generateTsConfigApp(): string {
+  public generateTsConfigApp(): string {
     return JSON.stringify({
       "extends": "./tsconfig.json",
       "compilerOptions": {
@@ -488,7 +488,7 @@ bootstrapApplication(AppComponent)
     }, null, 2);
   }
 
-  private generateGitignore(): string {
+  public generateGitignore(): string {
     return `# See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Compiled output
@@ -534,7 +534,7 @@ testem.log
 Thumbs.db`;
   }
 
-  private generateGlobalStyles(): string {
+  public generateGlobalStyles(): string {
     return `/* Global Styles for Generated Form */
 
 /* Import Google Fonts */
@@ -588,7 +588,7 @@ body {
 }`;
   }
 
-  private generateReadme(component: GeneratedComponent, config: CodeGenerationConfig): string {
+  public generateReadme(component: GeneratedComponent, config: CodeGenerationConfig): string {
     return `# ${config.componentName}
 
 Generated Angular component created with Form Constructor.
@@ -636,7 +636,7 @@ ${new Date().toLocaleDateString()} by Angular Form Constructor
 *This component was automatically generated. You can modify it as needed for your project.*`;
   }
 
-  private generateProjectReadme(config: CodeGenerationConfig): string {
+  public generateProjectReadme(config: CodeGenerationConfig): string {
     return `# ${config.componentName} - Angular Project
 
 This is a complete Angular project containing the generated form component.
@@ -678,14 +678,14 @@ This project was automatically generated and is ready to run with no additional 
   /**
    * Utility methods
    */
-  private kebabCase(str: string): string {
+  public kebabCase(str: string): string {
     return str
       .replace(/([a-z])([A-Z])/g, '$1-$2')
       .replace(/[\s_]+/g, '-')
       .toLowerCase();
   }
 
-  private addToHistory(result: ExportResult): void {
+  public addToHistory(result: ExportResult): void {
     this.exportHistory.update(history => {
       const newHistory = [...history, result];
       // Keep only last 20 exports

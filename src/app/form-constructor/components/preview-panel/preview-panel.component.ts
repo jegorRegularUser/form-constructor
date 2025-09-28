@@ -24,10 +24,10 @@ interface DeviceConfig {
   styleUrl: './preview-panel.component.css'
 })
 export class PreviewPanelComponent implements OnInit, OnDestroy {
-  private codeGenerator = inject(CodeGeneratorService);
-  private dynamicRenderer = inject(DynamicRendererService);
-  private sanitizer = inject(DomSanitizer);
-  private editorService = inject(EditorPanelService);
+  public codeGenerator = inject(CodeGeneratorService);
+  public dynamicRenderer = inject(DynamicRendererService);
+  public sanitizer = inject(DomSanitizer);
+  public editorService = inject(EditorPanelService);
 
   @ViewChild('previewIframe', { static: false }) previewIframe!: ElementRef<HTMLIFrameElement>;
   @ViewChild('fullscreenIframe', { static: false }) fullscreenIframe!: ElementRef<HTMLIFrameElement>;
@@ -35,13 +35,13 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   // Preview state
   public currentDevice = signal<DeviceType>('desktop');
   public currentOrientation = signal<OrientationType>('portrait');
-  private isRefreshing = signal(false);
-  private previewContent = signal<string>('');
+  public isRefreshing = signal(false);
+  public previewContent = signal<string>('');
   public lastUpdateTime = signal<Date>(new Date());
   public showFullscreen = signal(false);
 
   // Device configurations
-  private devices: DeviceConfig[] = [
+  public devices: DeviceConfig[] = [
     {
       type: 'mobile',
       width: 375,
@@ -141,12 +141,12 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
     this.clearPreview();
   }
 
-  private lastEventTimestamp = 0;
+  public lastEventTimestamp = 0;
 
   /**
    * Setup automatic preview refresh when form changes
    */
-  private setupAutoRefresh(): void {
+  public setupAutoRefresh(): void {
     // Listen for custom window events from editor panel
     window.addEventListener('form:changed', (event: any) => {
       try {
@@ -172,12 +172,12 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
     });
   }
 
-  private debounceTimeout: any;
+  public debounceTimeout: any;
   
   /**
    * Debounced refresh to avoid too frequent updates
    */
-  private debounceRefresh(): void {
+  public debounceRefresh(): void {
     clearTimeout(this.debounceTimeout);
     this.debounceTimeout = setTimeout(() => {
       this.refreshPreview();
@@ -221,7 +221,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Get form HTML from editor service
    */
-  private getFormHtml(): string {
+  public getFormHtml(): string {
     try {
       return this.editorService.generateFormHtml();
     } catch (error) {
@@ -233,7 +233,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Generate complete HTML for preview
    */
-  private generatePreviewHTML(formHtml: string, formCss: string): string {
+  public generatePreviewHTML(formHtml: string, formCss: string): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -444,7 +444,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Update iframe content safely
    */
-  private async updateIframeContent(html: string): Promise<void> {
+  public async updateIframeContent(html: string): Promise<void> {
     if (!this.previewIframe?.nativeElement) {
       console.warn('Preview iframe not available');
       return;
@@ -486,7 +486,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Calculate scale for device preview
    */
-  private calculateScale(): string {
+  public calculateScale(): string {
     const device = this.currentDevice();
     
     if (device === 'desktop') return 'scale(1)';
@@ -611,7 +611,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Clear preview content
    */
-  private clearPreview(): void {
+  public clearPreview(): void {
     if (this.previewIframe) {
       const iframe = this.previewIframe.nativeElement;
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -643,7 +643,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Handle messages from iframe
    */
-  private handleIframeMessage(data: any): void {
+  public handleIframeMessage(data: any): void {
     switch (data.type) {
       case 'form-submit':
         console.log('Form submitted in preview:', data.payload);
@@ -662,7 +662,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Process HTML for preview by removing absolute positioning
    */
-  private processHtmlForPreview(html: string): string {
+  public processHtmlForPreview(html: string): string {
     // Remove absolute positioning from components
     let processedHtml = html.replace(/style="position: absolute;[^"]*"/g, '');
     
@@ -711,7 +711,7 @@ export class PreviewPanelComponent implements OnInit, OnDestroy {
   /**
    * Update fullscreen iframe content
    */
-  private updateFullscreenIframe(): void {
+  public updateFullscreenIframe(): void {
     if (!this.fullscreenIframe?.nativeElement) {
       console.warn('Fullscreen iframe not available');
       return;

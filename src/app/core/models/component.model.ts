@@ -2,10 +2,11 @@
  * Core component models for the form constructor application
  */
 
-export type ComponentType = 
+export type ComponentType =
   | 'input' | 'textarea' | 'select' | 'checkbox' | 'radio'
   | 'button' | 'container' | 'grid' | 'flex' | 'card'
-  | 'label' | 'divider' | 'spacer';
+  | 'label' | 'divider' | 'spacer'
+  | 'text-input' | 'email-input';
 
 export type LayoutType = 'block' | 'flex' | 'grid' | 'inline';
 
@@ -70,6 +71,8 @@ export interface FormComponent extends BaseComponent {
   validators?: ValidatorConfig[];
   errorMessages?: { [key: string]: string };
   valueType?: 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
+  children?: FormComponent[];
+  style?: any;
 }
 
 export interface ContainerComponent extends BaseComponent {
@@ -171,6 +174,38 @@ export interface PreviewConfig {
   height?: string;
   thumbnail?: string;
   mockData?: any;
+}
+
+// Drag and Drop interfaces
+export interface DroppedComponent {
+  id: string;
+  type: ComponentType;
+  label: string;
+  properties: ComponentProperties;
+  children?: DroppedComponent[];
+  parentId?: string | null;
+  style?: any;
+}
+
+export interface DropZoneState {
+  componentId: string | null;
+  position: 'top' | 'bottom' | 'left' | 'right' | null;
+}
+
+export interface FormComponentDefinition {
+  type: ComponentType;
+  label: string;
+  icon: string;
+  defaultProperties: ComponentProperties;
+}
+
+// Block interfaces (for legacy compatibility)
+export interface BlockDefinition {
+  id: string;
+  label: string;
+  category: string;
+  media: string;
+  content: any;
 }
 
 // Export utility types

@@ -32,6 +32,17 @@
   gap: var(--space-1);
 }
 
+.btn-danger {
+  background-color: var(--error-600);
+  color: white;
+  border-color: var(--error-600);
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
 /* Content */
 .property-content {
   flex: 1;

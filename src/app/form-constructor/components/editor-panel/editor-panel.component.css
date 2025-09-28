@@ -1,19 +1,158 @@
-.editor-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: white;
+/* editor-panel.component.css */
+
+/* Базовые стили */
+.editor-container {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
 }
 
+.editor-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 320px;
+  border: 1px dashed rgba(0,0,0,0.08);
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+  background: var(--canvas-bg, #ffffff);
+  overflow: auto;
+  min-width: 0;
+}
 
+/* Visible Form Layer */
+.editor-canvas.visible-layer {
+  z-index: 1;
+  pointer-events: none;
+}
 
+/* Invisible Drag Layer */
+.editor-canvas.invisible-layer {
+  z-index: 2;
+  opacity: 0;
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+}
+
+/* Компоненты на форме */
+.dropped-component {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  cursor: grab;
+  display: block;
+  position: relative;
+}
+
+/* Visible components */
+.dropped-component.visible-component {
+  pointer-events: none;
+}
+
+/* Invisible components */
+.dropped-component.invisible-component {
+  pointer-events: auto;
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  min-height: auto;
+}
+
+.dropped-component.dragging {
+  opacity: 0.5 !important;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* Обеспечиваем видимость элементов после drop */
+.dropped-component:not(.dragging) {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+.nested-component { 
+  width: 100%; 
+}
+
+.component-preview { 
+  width: 100%; 
+  min-width: 0; 
+  box-sizing: border-box; 
+}
+
+/* Контейнеры формы */
+.form-container {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: block;
+  gap: 1rem;
+  background: var(--container-bg, #fafafa);
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-container[style*="display: flex"] {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.form-container[style*="display: grid"] {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Поля управления */
+.form-control {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.btn {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn--full { 
+  display: block; 
+  width: 100%; 
+}
+
+.container-placeholder {
+  width: 100%;
+  text-align: center;
+  color: #9aa0a6;
+  padding: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Editor toolbar */
 .editor-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
 }
 
 .toolbar-group {
@@ -25,437 +164,299 @@
 .toolbar-separator {
   width: 1px;
   height: 1.5rem;
-  background: #d1d5db;
+  background: var(--gray-300);
   margin: 0 0.5rem;
 }
 
 .editor-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--gray-500);
 }
 
-.editor-container {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-.editor-canvas {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  background: #f9fafb;
-  background-image: 
-    radial-gradient(circle, #d1d5db 1px, transparent 1px);
-  background-size: 20px 20px;
-  overflow: auto;
-  min-height: 500px;
-  padding: 1rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.editor-canvas.drag-over {
-  background-color: #eff6ff;
-  border: 2px dashed #3b82f6;
-}
-
-.empty-state {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #6b7280;
-}
-
-.empty-icon {
-  margin-bottom: 1rem;
-}
-
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #374151;
-}
-
-.empty-subtitle {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.dropped-component {
-  position: absolute;
-  background: white;
-  border: 2px solid transparent;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: move;
-  transition: all 0.15s ease;
-  min-width: 250px;
-  user-select: none;
-}
-
-.dropped-component:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
-}
-
-.dropped-component:active {
-  cursor: grabbing;
-  transform: scale(1.02);
-}
-
+/* Selected state */
 .dropped-component.selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
 }
 
-.component-preview {
-  padding: 1rem;
-  pointer-events: none;
-  width: 100%;
+/* ==================== НОВЫЕ СТИЛИ ДЛЯ DRAG & DROP ==================== */
+
+/* Legacy ghost элемент (deprecated, используется новая мини-плашка) */
+.drag-ghost-cursor {
+  display: none !important;
 }
 
-.component-preview .form-group.preview {
-  margin-bottom: 0.75rem;
-}
-
-.component-preview .form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.25rem;
-}
-
-.component-preview .form-control {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-  background-color: #f9fafb;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  box-sizing: border-box;
-}
-
-.component-preview .form-check.preview {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.component-preview .form-check-input {
-  width: 1rem;
-  height: 1rem;
-}
-
-.component-preview .form-check-label {
-  font-size: 0.875rem;
-  color: #374151;
-  margin: 0;
-}
-
-.component-preview .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
-  cursor: not-allowed;
-}
-
-.component-preview .btn-primary {
-  color: white;
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-}
-
-.component-preview .btn-secondary {
-  color: #374151;
-  background-color: white;
-  border-color: #d1d5db;
-}
-
-.component-controls {
-  position: absolute;
-  top: -0.5rem;
-  right: -0.5rem;
-  display: flex;
-  gap: 0.25rem;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.dropped-component:hover .component-controls,
-.dropped-component.selected .component-controls {
-  opacity: 1;
-}
-
-.control-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.control-btn:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-}
-
-.delete-btn:hover {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
-}
-
-.move-btn:hover {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #2563eb;
-}
-
-.drag-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(59, 130, 246, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.drag-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  background: white;
-  border: 2px dashed #3b82f6;
-  border-radius: 0.5rem;
-  color: #3b82f6;
-  font-weight: 500;
-}
-
+/* Новый стиль для синей полосы вставки */
 .drop-indicator {
-  height: 2px;
-  background-color: transparent;
-  margin: 2px 0;
-  transition: all 0.2s ease;
+  position: absolute;
+  background: #3b82f6;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+  height: 4px;
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
+  width: 100%;
 }
 
 .drop-indicator.active {
-  background-color: #3b82f6;
-  height: 4px;
-  margin: 4px 0;
+  opacity: 1;
+  animation: pulse-indicator 1.5s ease-in-out infinite alternate;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .dropped-component {
-    min-width: 150px;
-  }
-  
-  .component-preview {
-    padding: 0.75rem;
-  }
-  
-  .component-controls {
-    opacity: 1;
-  }
-}
-
-/* Animation for new components */
-@keyframes slideIn {
+/* Анимация для индикатора */
+@keyframes pulse-indicator {
   from {
-    opacity: 0;
-    transform: scale(0.9);
+    opacity: 0.7;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.4);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
   }
 }
 
-.dropped-component {
-  animation: slideIn 0.2s ease-out;
+/* Hover эффекты */
+.dropped-component:not(.dragging):hover {
+  outline: 2px solid rgba(59, 130, 246, 0.3);
+  outline-offset: 2px;
+  transition: outline 0.2s ease;
 }
 
-/* Dragging state */
-.dropped-component.dragging {
-  opacity: 0.8;
-  transform: rotate(2deg) scale(1.05);
-  z-index: 1000;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+.drop-zone-hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
-/* Auto-layout for form elements */
-.editor-canvas .dropped-component {
-  position: static;
-  display: block;
-  margin-bottom: 1rem;
-  width: calc(100% - 2rem);
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
-
-.editor-canvas .dropped-component:first-child {
-  margin-top: 1rem;
-}
-
-/* Force static positioning for better layout */
-.editor-canvas {
-  display: flex;
-  flex-direction: column;
-}
-
-.editor-canvas .dropped-component {
-  position: static !important;
-  left: auto !important;
-  top: auto !important;
-  transform: none !important;
-}
-
-/* CDK Drag and Drop Styles */
+/* Скрываем стандартный CDK drag preview и placeholder полностью */
 .cdk-drag-preview {
-  box-sizing: border-box;
-  border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-              0 8px 10px 1px rgba(0, 0, 0, 0.14),
-              0 3px 14px 2px rgba(0, 0, 0, 0.12);
-  transform: rotate(5deg);
-}
-
-.cdk-drag-placeholder {
-  opacity: 0.4;
-  background: #f3f4f6;
-  border: 2px dashed #d1d5db;
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0) !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  display: none !important;
 }
 
-.cdk-drag {
-  transition: transform 200ms ease;
+.cdk-drag-preview,
+.cdk-drag-preview *,
+.cdk-drop-list-dragging .cdk-drag-preview {
+  display: none !important;
+  visibility: hidden !important;
 }
 
-.cdk-drag:not(.cdk-drag-disabled):active {
+/* Полностью скрываем drag placeholder - убираем прямоугольник */
+.cdk-drag-placeholder {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transform: scale(0) !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Убираем все возможные placeholder эффекты */
+.cdk-drop-list-dragging .cdk-drag-placeholder,
+.cdk-drop-list .cdk-drag-placeholder {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Контейнер остается статичным во время drag */
+.container-component {
+  position: relative;
+}
+
+.container-component > .dropped-component,
+.container-component .nested-component {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  transition: transform 120ms ease, margin 120ms ease;
+}
+
+/* Анимация для элементов при drag */
+.dropped-component {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropped-component:not(.dragging) {
+  cursor: grab;
+}
+
+.dropped-component.dragging {
   cursor: grabbing;
 }
 
-.cdk-drop-list {
-  min-height: 60px;
+/* Подсветка при наведении на контейнер */
+.container-component:hover {
+  border-color: rgba(99,102,241,0.2);
 }
 
-.empty-drop-zone {
-  min-height: 300px;
+/* Улучшенная анимация для элементов внутри контейнера */
+.container-component > .dropped-component {
+  transition: all 150ms ease;
+}
+
+/* ==================== НОВЫЕ СТИЛИ ДЛЯ УЛУЧШЕННОГО DRAG & DROP ==================== */
+
+/* Мини-плашка, следующая за курсором */
+.drag-mini-plaque {
+  position: fixed;
+  z-index: 10001;
+  pointer-events: none;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 2px dashed #d1d5db;
-  border-radius: 0.5rem;
-  background: #fafafa;
-  color: #9ca3af;
-  font-size: 1rem;
-  margin: 1rem;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  user-select: none;
+  transform: translate(-50%, -120%);
 }
 
-.editor-canvas:not(.has-components) {
-  min-height: 400px;
+.drag-mini-plaque .mini-plaque-icon {
+  font-size: 16px;
+  line-height: 1;
 }
 
-.cdk-drop-list.cdk-drop-list-receiving {
-  background: #eff6ff;
-  border: 2px dashed #3b82f6;
-  border-radius: 0.5rem;
+.drag-mini-plaque .mini-plaque-text {
+  line-height: 1;
 }
 
-/* Container specific styles */
-.form-container.container-component {
-  min-height: 120px;
-  border: 2px dashed #d1d5db;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
-  background-size: 15px 15px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.form-container.container-component.cdk-drop-list-receiving {
-  background: #eff6ff;
-  background-image: radial-gradient(circle, #93c5fd 1px, transparent 1px);
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.container-placeholder {
-  text-align: center;
-  color: #9ca3af;
-  font-size: 0.875rem;
-  margin: 0;
-  padding: 2rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* Синяя полоска вставки */
+.insertion-strip {
+  position: fixed;
+  z-index: 10000;
   pointer-events: none;
-}
-
-/* Nested component styles */
-.nested-component {
-  margin-bottom: 0.5rem;
-  position: relative;
-}
-
-.nested-component:last-child {
-  margin-bottom: 0;
-}
-
-/* Resize handles */
-.dropped-component.selected::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  right: -3px;
-  width: 8px;
-  height: 8px;
-  background: #3b82f6;
-  border: 1px solid white;
+  background-color: #3b82f6;
   border-radius: 2px;
-  cursor: se-resize;
-  z-index: 10;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
+  opacity: 0.9;
+  transition: all 0.1s ease;
 }
 
-.dropped-component.selected::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  bottom: -3px;
-  left: -3px;
-  border: 2px solid #3b82f6;
-  border-radius: 0.5rem;
+/* Стили для контейнеров с разными layout */
+[data-layout="row"] {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+[data-layout="column"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Улучшенные стили для droppable зон */
+[data-droppable="true"] {
+  position: relative;
+}
+
+[data-droppable="true"]:hover {
+  background-color: rgba(59, 130, 246, 0.02);
+  transition: background-color 0.2s ease;
+}
+
+/* Стили для полупрозрачности при перетаскивании */
+.dropped-component.dragging {
+  opacity: 0.5 !important;
   pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Убираем все CDK эффекты полностью */
+.cdk-drag-preview,
+.cdk-drag-placeholder,
+.cdk-drag-animating {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  transform: scale(0) !important;
+  pointer-events: none !important;
+}
+
+/* Обеспечиваем правильное позиционирование элементов */
+.editor-canvas.visible-layer .dropped-component {
+  position: relative;
   z-index: 1;
+}
+
+.editor-canvas.invisible-layer .dropped-component {
+  position: absolute;
+  z-index: 2;
+  visibility: hidden;
+}
+
+/* Автопрокрутка */
+.editor-canvas {
+  scroll-behavior: smooth;
+}
+
+/* Улучшенная видимость при hover */
+.dropped-component:not(.dragging):hover {
+  outline: 2px solid rgba(59, 130, 246, 0.4);
+  outline-offset: 1px;
+  transition: outline 0.15s ease;
+}
+
+/* Стили для выбранного элемента */
+.dropped-component.selected {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Responsive стили */
+@media (max-width: 768px) {
+  .drag-mini-plaque {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .drag-mini-plaque .mini-plaque-icon {
+    font-size: 14px;
+  }
+  
+  .insertion-strip {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  }
 }

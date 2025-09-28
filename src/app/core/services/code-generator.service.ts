@@ -12,15 +12,15 @@ import {
   providedIn: 'root'
 })
 export class CodeGeneratorService {
-  private generationInProgress = signal(false);
-  private lastGeneratedCode = signal<GeneratedComponent | null>(null);
+  public generationInProgress = signal(false);
+  public lastGeneratedCode = signal<GeneratedComponent | null>(null);
 
   // Computed properties
   readonly isGenerating = computed(() => this.generationInProgress());
   readonly lastGenerated = computed(() => this.lastGeneratedCode());
 
   // Template cache for performance
-  private templateCache = new Map<string, string>();
+  public templateCache = new Map<string, string>();
 
   constructor() {
     this.initializeTemplates();
@@ -57,7 +57,7 @@ export class CodeGeneratorService {
   /**
    * Create generation context from structure and config
    */
-  private createGenerationContext(structure: any, config: CodeGenerationConfig): GenerationContext {
+  public createGenerationContext(structure: any, config: CodeGenerationConfig): GenerationContext {
     const formControls = this.extractFormControls(structure.components || []);
     
     return {
@@ -75,7 +75,7 @@ export class CodeGeneratorService {
   /**
    * Generate TypeScript component class
    */
-  private generateTypeScript(context: GenerationContext): string {
+  public generateTypeScript(context: GenerationContext): string {
     const { className, formControls, config } = context;
     
     // Add reactive forms imports if needed
@@ -123,7 +123,7 @@ ${methods}
   /**
    * Generate HTML template
    */
-  private generateTemplate(context: GenerationContext): string {
+  public generateTemplate(context: GenerationContext): string {
     const { structure, formControls } = context;
     
     let template = '';
@@ -144,7 +144,7 @@ ${this.generateComponentsHTML(structure.components || [], 1)}
   /**
    * Generate CSS styles
    */
-  private generateStyles(context: GenerationContext): string {
+  public generateStyles(context: GenerationContext): string {
     const { config } = context;
     
     let styles = `/**
@@ -318,7 +318,7 @@ ${this.generateComponentsHTML(structure.components || [], 1)}
   /**
    * Generate component HTML from structure
    */
-  private generateComponentsHTML(components: any[], depth: number): string {
+  public generateComponentsHTML(components: any[], depth: number): string {
     const indent = '  '.repeat(depth);
     
     return components.map(component => {
@@ -341,7 +341,7 @@ ${this.generateComponentsHTML(structure.components || [], 1)}
     }).join('\n');
   }
 
-  private generateInputHTML(component: any, depth: number): string {
+  public generateInputHTML(component: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const props = this.getComponentProperties(component);
     const controlName = props.formControlName || props.name || 'inputField';
@@ -364,7 +364,7 @@ ${this.generateValidationHTML(controlName, props, depth + 1)}
 ${indent}</div>`;
   }
 
-  private generateSelectHTML(component: any, depth: number): string {
+  public generateSelectHTML(component: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const props = this.getComponentProperties(component);
     const controlName = props.formControlName || props.name || 'selectField';
@@ -394,7 +394,7 @@ ${this.generateValidationHTML(controlName, props, depth + 1)}
 ${indent}</div>`;
   }
 
-  private generateCheckboxHTML(component: any, depth: number): string {
+  public generateCheckboxHTML(component: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const props = this.getComponentProperties(component);
     const controlName = props.formControlName || props.name || 'checkboxField';
@@ -417,7 +417,7 @@ ${this.generateValidationHTML(controlName, props, depth + 1)}
 ${indent}</div>`;
   }
 
-  private generateButtonHTML(component: any, depth: number): string {
+  public generateButtonHTML(component: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const props = this.getComponentProperties(component);
     
@@ -432,7 +432,7 @@ ${indent}  ${props.text || 'Button Text'}
 ${indent}</button>`;
   }
 
-  private generateContainerHTML(component: any, depth: number): string {
+  public generateContainerHTML(component: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const props = this.getComponentProperties(component);
     const children = component.components || [];
@@ -447,7 +447,7 @@ ${indent}</div>`;
   /**
    * Generate validation HTML for form controls
    */
-  private generateValidationHTML(controlName: string, props: any, depth: number): string {
+  public generateValidationHTML(controlName: string, props: any, depth: number): string {
     const indent = '  '.repeat(depth);
     const validationRules = [];
     
@@ -485,7 +485,7 @@ ${indent}</div>`;
   /**
    * Generate form group definition
    */
-  private generateFormGroup(context: GenerationContext): string {
+  public generateFormGroup(context: GenerationContext): string {
     const { formControls } = context;
     
     if (formControls.length === 0) return '';
@@ -505,7 +505,7 @@ ${controls}
   /**
    * Generate validators for form control
    */
-  private generateValidators(control: FormControlDefinition): string {
+  public generateValidators(control: FormControlDefinition): string {
     if (!control.validators || control.validators.length === 0) return '';
     
     const validators = control.validators.filter(v => v);
@@ -522,7 +522,7 @@ ${controls}
   /**
    * Generate component imports
    */
-  private generateImports(context: GenerationContext): string {
+  public generateImports(context: GenerationContext): string {
     const { imports, dependencies } = context;
     const importGroups = new Map<string, Set<string>>();
     
@@ -557,20 +557,20 @@ ${controls}
   /**
    * Generate constructor
    */
-  private generateConstructor(context: GenerationContext): string {
+  public generateConstructor(context: GenerationContext): string {
     const { formControls } = context;
     
     if (formControls.length === 0) {
       return '  constructor() {}';
     }
 
-    return `  constructor(private fb: FormBuilder) {}`;
+    return `  constructor(public fb: FormBuilder) {}`;
   }
 
   /**
    * Generate lifecycle methods
    */
-  private generateLifecycleMethods(context: GenerationContext): string {
+  public generateLifecycleMethods(context: GenerationContext): string {
     const { formControls } = context;
     
     if (formControls.length === 0) return '';
@@ -584,7 +584,7 @@ ${controls}
   /**
    * Generate component methods
    */
-  private generateMethods(context: GenerationContext): string {
+  public generateMethods(context: GenerationContext): string {
     const { formControls, config } = context;
     
     let methods = '';
@@ -600,7 +600,7 @@ ${controls}
     }
   }
 
-  private markFormGroupTouched(): void {
+  public markFormGroupTouched(): void {
     Object.keys(this.form.controls).forEach(key => {
       this.form.get(key)?.markAsTouched();
     });
@@ -621,7 +621,7 @@ ${controls}
   /**
    * Generate component imports for template
    */
-  private generateComponentImports(context: GenerationContext): string {
+  public generateComponentImports(context: GenerationContext): string {
     const { formControls } = context;
     const imports = ['CommonModule'];
     
@@ -635,7 +635,7 @@ ${controls}
   /**
    * Extract form controls from components
    */
-  private extractFormControls(components: any[]): FormControlDefinition[] {
+  public extractFormControls(components: any[]): FormControlDefinition[] {
     const controls: FormControlDefinition[] = [];
     
     const processComponent = (component: any) => {
@@ -662,7 +662,7 @@ ${controls}
     return controls;
   }
 
-  private extractValidators(component: any): string[] {
+  public extractValidators(component: any): string[] {
     const validators: string[] = [];
     const props = this.getComponentProperties(component);
     
@@ -692,11 +692,11 @@ ${controls}
   /**
    * Utility methods
    */
-  private getComponentType(component: any): string {
+  public getComponentType(component: any): string {
     return component.type || component.get?.('type') || 'div';
   }
 
-  private getComponentProperties(component: any): any {
+  public getComponentProperties(component: any): any {
     const props: any = {};
     
     // Get attributes
@@ -724,22 +724,22 @@ ${controls}
     return props;
   }
 
-  private getFormControlName(component: any): string | null {
+  public getFormControlName(component: any): string | null {
     const props = this.getComponentProperties(component);
     return props.formControlName || props.name || null;
   }
 
-  private getDefaultValue(component: any): any {
+  public getDefaultValue(component: any): any {
     const props = this.getComponentProperties(component);
     return props.defaultValue || props.value || '';
   }
 
-  private generateProperties(context: GenerationContext): string {
+  public generateProperties(context: GenerationContext): string {
     // Generate any additional component properties
     return '  // Component properties';
   }
 
-  private resolveDependencies(context: GenerationContext): ImportStatement[] {
+  public resolveDependencies(context: GenerationContext): ImportStatement[] {
     const dependencies: ImportStatement[] = [];
     
     dependencies.push({
@@ -765,7 +765,7 @@ ${controls}
     return dependencies;
   }
 
-  private createComponentMetadata(config: CodeGenerationConfig): ComponentMetadata {
+  public createComponentMetadata(config: CodeGenerationConfig): ComponentMetadata {
     return {
       standalone: config.standalone,
       changeDetection: 'Default',
@@ -773,7 +773,7 @@ ${controls}
     };
   }
 
-  private generateTests(context: GenerationContext): string {
+  public generateTests(context: GenerationContext): string {
     const { className } = context;
     
     return `import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -808,7 +808,7 @@ describe('${className}Component', () => {
 });`;
   }
 
-  private generateResponsiveStyles(): string {
+  public generateResponsiveStyles(): string {
     return `
 
 /* Responsive Design */
@@ -841,16 +841,16 @@ describe('${className}Component', () => {
   /**
    * Utility methods for code formatting
    */
-  private pascalCase(str: string): string {
+  public pascalCase(str: string): string {
     return str.replace(/(?:^|[\s-_])+(.)/g, (_, char) => char.toUpperCase());
   }
 
-  private formatHTML(html: string): string {
+  public formatHTML(html: string): string {
     // Basic HTML formatting
     return html.split('\n').map(line => line.trimRight()).join('\n');
   }
 
-  private initializeTemplates(): void {
+  public initializeTemplates(): void {
     // Initialize template cache for performance
     this.templateCache.set('component-base', 'component template');
   }

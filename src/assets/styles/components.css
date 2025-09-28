@@ -67,7 +67,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2) var(--space-4);
+  gap: 0.5em; /* Добавлено расстояние между текстом и иконкой */
+  padding: var(--space-2) var(--space-2);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
@@ -79,16 +80,19 @@
   user-select: none;
   white-space: nowrap;
   height: var(--button-height);
+
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--gray-100); /* Светлый фон для disabled */
+  color: var(--gray-400); /* Светлый текст для disabled */
 }
 
 .btn-sm {
   height: var(--button-height-sm);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-1) var(--space-1);
   font-size: var(--font-size-xs);
 }
 
@@ -99,7 +103,7 @@
 }
 
 .btn-primary {
-  color: white;
+  color: white !important; /* Явный белый текст */
   background-color: var(--primary-600);
   border-color: var(--primary-600);
 }
@@ -107,10 +111,11 @@
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-700);
   border-color: var(--primary-700);
+  color: white;
 }
 
 .btn-secondary {
-  color: var(--gray-700);
+  color: var(--gray-900); /* Более тёмный текст для видимости */
   background-color: white;
   border-color: var(--gray-300);
 }
@@ -118,16 +123,30 @@
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--gray-50);
   border-color: var(--gray-400);
+  color: var(--gray-900);
 }
-
 
 .btn-icon {
   width: var(--button-height);
+  min-width: var(--button-height);
   padding: 0;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  color: inherit;
 }
 
 .btn-icon.btn-sm {
   width: var(--button-height-sm);
+  min-width: var(--button-height-sm);
+}
+
+.btn svg, .btn .icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor; /* SVG наследует цвет текста кнопки */
 }
 
 /* ===== PANEL COMPONENTS ===== */

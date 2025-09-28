@@ -1,114 +1,211 @@
 import { Injectable, signal } from '@angular/core';
-
-export interface FormComponent {
-  id: string;
-  type: string;
-  label: string;
-  properties: any;
-}
+import { FormBuilderService } from '../../../services/form-builder.service';
+import { DroppedComponent, ComponentType, ComponentProperties } from '../../../core/models/component.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EditorPanelService {
-  private components = signal<FormComponent[]>([]);
+  // Expose the form components signal from FormBuilderService
+  public formComponents: any;
   
-  readonly formComponents = this.components.asReadonly();
-  
-  addComponent(component: FormComponent): void {
-    this.components.update(components => [...components, component]);
-    this.emitFormChange();
+  constructor(private formBuilder: FormBuilderService) {
+    this.formComponents = this.formBuilder.getDroppedComponents();
   }
   
-  removeComponent(id: string): void {
-    this.components.update(components => components.filter(c => c.id !== id));
-    this.emitFormChange();
-  }
-  
-  updateComponent(id: string, properties: any): void {
-    this.components.update(components =>
-      components.map(comp =>
-        comp.id === id ? { ...comp, properties: { ...comp.properties, ...properties } } : comp
-      )
-    );
-    this.emitFormChange();
-  }
-  
-  clearComponents(): void {
-    this.components.set([]);
-    this.emitFormChange();
-  }
-  
+  /**
+   * Generate HTML representation of the form
+   */
   generateFormHtml(): string {
-    const components = this.components();
-    if (components.length === 0) {
-      return '<div class="form-container" style="padding: 2rem; border: 2px dashed #ccc; text-align: center; color: #666;">Drag components here to build your form</div>';
+    try {
+      const components = this.formComponents();
+      let html = '<form class="generated-form">\n';
+      
+      components.forEach((component: DroppedComponent) => {
+        html += this.generateComponentHtml(component);
+      });
+      
+      html += '</form>';
+      return html;
+    } catch (error) {
+      console.error('Error generating form HTML:', error);
+      return '<form class="generated-form error"><!-- Error generating form --></form>';
     }
-
-    let html = '<div class="form-container" style="max-width: 600px; margin: 0 auto; padding: 1.5rem;">\\n';
+  }
+  
+  /**
+   * Generate HTML for a single component
+   */
+  private generateComponentHtml(component: DroppedComponent, indent: number = 2): string {
+    const spaces = ' '.repeat(indent);
+    let html = '';
     
-    components.forEach(component => {
-      switch (component.type) {
-        case 'text-input':
-        case 'email-input':
-          html += `  <div class="form-group" style="width: 100%; margin-bottom: 1rem;">
-    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${component.properties.label}</label>
-    <input type="${component.type === 'email-input' ? 'email' : 'text'}" 
-           class="form-control" 
-           style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem;"
-           placeholder="${component.properties.placeholder}"
-           ${component.properties.required ? 'required' : ''} />
-  </div>\\n`;
-          break;
-          
-        case 'textarea':
-          html += `  <div class="form-group" style="width: 100%; margin-bottom: 1rem;">
-    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${component.properties.label}</label>
-    <textarea class="form-control" 
-              style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; resize: vertical;"
-              rows="${component.properties.rows}"
-              placeholder="${component.properties.placeholder}"></textarea>
-  </div>\\n`;
-          break;
-          
-        case 'select':
-          html += `  <div class="form-group" style="width: 100%; margin-bottom: 1rem;">
-    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${component.properties.label}</label>
-    <select class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem;">
-      <option value="">Choose option</option>
-${component.properties.options.map((opt: string) => `      <option value="${opt}">${opt}</option>`).join('\\n')}
-    </select>
-  </div>\\n`;
-          break;
-          
-        case 'checkbox':
-          html += `  <div class="form-check" style="margin-bottom: 1rem;">
-    <input type="checkbox" class="form-check-input" ${component.properties.checked ? 'checked' : ''} />
-    <label class="form-check-label">${component.properties.label}</label>
-  </div>\\n`;
-          break;
-          
-        case 'button':
-          html += `  <button type="${component.properties.type}" 
-           class="btn btn-${component.properties.variant}"
-           style="padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; background: #3b82f6; color: white; cursor: pointer; font-weight: 500;">
-    ${component.properties.text}
-  </button>\\n`;
-          break;
-      }
-    });
+    switch (component.type) {
+      case 'input':
+      case 'text-input':
+      case 'email-input':
+        html += `${spaces}<div class="form-group">\n`;
+        html += `${spaces}  <label>${component.properties?.label || 'Input'}</label>\n`;
+        html += `${spaces}  <input type="${component.type === 'email-input' ? 'email' : 'text'}" 
+          placeholder="${component.properties?.placeholder || ''}"
+          ${component.properties?.required ? 'required' : ''}>\n`;
+        html += `${spaces}</div>\n`;
+        break;
+        
+      case 'textarea':
+        html += `${spaces}<div class="form-group">\n`;
+        html += `${spaces}  <label>${component.properties?.label || 'Textarea'}</label>\n`;
+        html += `${spaces}  <textarea rows="${component.properties?.['rows'] || 3}"
+          placeholder="${component.properties?.['placeholder'] || ''}"></textarea>\n`;
+        html += `${spaces}</div>\n`;
+        break;
+        
+      case 'select':
+        html += `${spaces}<div class="form-group">\n`;
+        html += `${spaces}  <label>${component.properties?.label || 'Select'}</label>\n`;
+        html += `${spaces}  <select>\n`;
+        (component.properties?.['options'] || []).forEach((option: string) => {
+          html += `${spaces}    <option value="${option}">${option}</option>\n`;
+        });
+        html += `${spaces}  </select>\n`;
+        html += `${spaces}</div>\n`;
+        break;
+        
+      case 'checkbox':
+        html += `${spaces}<div class="form-check">\n`;
+        html += `${spaces}  <input type="checkbox" id="${component.id}"
+          ${component.properties?.['checked'] ? 'checked' : ''}>\n`;
+        html += `${spaces}  <label for="${component.id}">${component.properties?.label || 'Checkbox'}</label>\n`;
+        html += `${spaces}</div>\n`;
+        break;
+        
+      case 'button':
+        html += `${spaces}<button type="${component.properties?.['type'] || 'button'}"
+          class="btn ${component.properties?.['variant'] || 'primary'}">\n`;
+        html += `${spaces}  ${component.properties?.['text'] || 'Button'}\n`;
+        html += `${spaces}</button>\n`;
+        break;
+        
+      case 'container':
+        html += `${spaces}<div class="container" style="${this.generateContainerStyles(component)}">\n`;
+        if (component.children) {
+          component.children.forEach(child => {
+            html += this.generateComponentHtml(child, indent + 2);
+          });
+        }
+        html += `${spaces}</div>\n`;
+        break;
+        
+      default:
+        html += `${spaces}<div class="component ${component.type}">Unknown component type: ${component.type}</div>\n`;
+    }
     
-    html += '</div>';
     return html;
   }
   
-  private emitFormChange(): void {
-    const html = this.generateFormHtml();
-    window.dispatchEvent(new CustomEvent('form:changed', {
-      detail: { 
-        html,
-        components: this.components()
+  /**
+   * Generate CSS styles for container components
+   */
+  private generateContainerStyles(component: DroppedComponent): string {
+    const styles: string[] = [];
+    
+    if (component.properties?.['layout'] === 'flex') {
+      styles.push('display: flex');
+      styles.push(`flex-direction: ${component.properties?.['direction'] || 'column'}`);
+      if (component.properties?.['gap']) {
+        styles.push(`gap: ${component.properties['gap']}`);
       }
-    }));
+      if (component.properties?.['padding']) {
+        styles.push(`padding: ${component.properties['padding']}`);
+      }
+    }
+    
+    if (component.properties?.['width']) {
+      styles.push(`width: ${component.properties['width']}`);
+    }
+    
+    return styles.join('; ');
+  }
+  
+  /**
+   * Clear all components from the form
+   */
+  clearComponents(): void {
+    this.formBuilder.clearComponents();
+  }
+  
+  /**
+   * Add a component to the form
+   */
+  addComponent(component: DroppedComponent): void {
+    this.formBuilder.addComponent(component);
+  }
+  
+  /**
+   * Find a container component by its type
+   */
+  findContainerByType(containerType: 'vertical' | 'horizontal'): DroppedComponent | null {
+    const components = this.formComponents();
+    
+    for (const component of components) {
+      if (component.type === 'container') {
+        const layoutType = component.properties?.containerType || 
+                         (component.properties?.direction === 'column' ? 'vertical' : 'horizontal');
+        if (layoutType === containerType) {
+          return component;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Add a component to a specific container
+   */
+  addComponentToContainer(containerId: string, component: DroppedComponent): void {
+    this.formBuilder.addComponent(component, containerId);
+  }
+  
+  /**
+   * Get a component by its ID
+   */
+  getComponentById(componentId: string): DroppedComponent | null {
+    const components = this.formComponents();
+    return this.findComponentByIdRecursive(components, componentId);
+  }
+  
+  /**
+   * Recursively find a component by ID
+   */
+  private findComponentByIdRecursive(components: DroppedComponent[], componentId: string): DroppedComponent | null {
+    for (const component of components) {
+      if (component.id === componentId) {
+        return component;
+      }
+      
+      if (component.children) {
+        const found = this.findComponentByIdRecursive(component.children, componentId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Update a component
+   */
+  updateComponent(componentId: string, updates: Partial<DroppedComponent>): void {
+    this.formBuilder.updateComponent(componentId, updates);
+  }
+  
+  /**
+   * Remove a component
+   */
+  removeComponent(componentId: string): void {
+    this.formBuilder.removeComponent(componentId);
   }
 }

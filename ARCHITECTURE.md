@@ -201,8 +201,8 @@ graph TB
 // grapesjs.service.ts
 @Injectable({ providedIn: 'root' })
 export class GrapesJSService {
-  private editor: grapesjs.Editor | null = null;
-  private componentDefinitions = new Map<string, ComponentDefinition>();
+  public editor: grapesjs.Editor | null = null;
+  public componentDefinitions = new Map<string, ComponentDefinition>();
   
   initializeEditor(container: HTMLElement): grapesjs.Editor {
     this.editor = grapesjs.init({
@@ -223,7 +223,7 @@ export class GrapesJSService {
     return this.editor;
   }
   
-  private getAngularBlocks(): BlockDefinition[] {
+  public getAngularBlocks(): BlockDefinition[] {
     return [
       {
         id: 'angular-input',
@@ -256,7 +256,7 @@ export class CodeGeneratorService {
     };
   }
   
-  private generateTypeScript(structure: ComponentStructure): string {
+  public generateTypeScript(structure: ComponentStructure): string {
     return `import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 
@@ -270,7 +270,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 export class ${structure.className} {
   ${this.generateFormGroup(structure)}
   
-  constructor(private fb: FormBuilder) {
+  constructor(public fb: FormBuilder) {
     ${this.generateFormInitialization(structure)}
   }
   
@@ -286,7 +286,7 @@ export class ${structure.className} {
 // dynamic-renderer.service.ts
 @Injectable({ providedIn: 'root' })
 export class DynamicRendererService {
-  private componentCache = new Map<string, Type<any>>();
+  public componentCache = new Map<string, Type<any>>();
   
   renderComponent(
     definition: ComponentDefinition, 
@@ -296,7 +296,7 @@ export class DynamicRendererService {
     return container.createComponent(componentType);
   }
   
-  private getOrCreateComponent(definition: ComponentDefinition): Type<any> {
+  public getOrCreateComponent(definition: ComponentDefinition): Type<any> {
     if (this.componentCache.has(definition.id)) {
       return this.componentCache.get(definition.id)!;
     }

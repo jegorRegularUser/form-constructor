@@ -18,12 +18,12 @@ interface PropertyGroup {
   styleUrl: './property-panel.component.css'
 })
 export class PropertyPanelComponent implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
+  public fb = inject(FormBuilder);
 
   // Component state
-  private selectedComponent = signal<any>(null);
-  private propertyForm = signal<FormGroup | null>(null);
-  private propertyGroups = signal<PropertyGroup[]>([]);
+  public selectedComponent = signal<any>(null);
+  public propertyForm = signal<FormGroup | null>(null);
+  public propertyGroups = signal<PropertyGroup[]>([]);
 
   // Computed properties
   readonly hasSelectedComponent = computed(() => this.selectedComponent() !== null);
@@ -43,7 +43,7 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     // Cleanup handled automatically
   }
 
-  private setupDirectSelection(): void {
+  public setupDirectSelection(): void {
     // Listen for component selection from editor panel
     window.addEventListener('component-selected', (event: any) => {
       const componentData = event.detail;
@@ -51,7 +51,7 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     });
   }
 
-  private onDirectComponentSelected(componentData: any): void {
+  public onDirectComponentSelected(componentData: any): void {
     console.log('Property panel: Direct component selected', componentData);
     this.selectedComponent.set(componentData);
     this.buildDirectPropertyForm(componentData);
@@ -65,7 +65,7 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     );
   }
 
-  private buildDirectPropertyForm(componentData: any): void {
+  public buildDirectPropertyForm(componentData: any): void {
     if (!componentData) return;
 
     // Create form controls based on component properties
@@ -133,7 +133,7 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     });
   }
 
-  private createDirectPropertyGroups(componentType: string, formControls: any): PropertyGroup[] {
+  public createDirectPropertyGroups(componentType: string, formControls: any): PropertyGroup[] {
     if (componentType === 'container') {
       // Container property groups
       const layoutGroup: PropertyGroup = {
@@ -366,7 +366,7 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
     return groups.filter(group => group.properties.length > 0);
   }
 
-  private onDirectPropertyChange(componentId: string, values: any): void {
+  public onDirectPropertyChange(componentId: string, values: any): void {
     // Process options if it's a select component
     if (values.options && typeof values.options === 'string') {
       values.options = values.options.split('\n').filter((opt: string) => opt.trim());
@@ -430,5 +430,18 @@ export class PropertyPanelComponent implements OnInit, OnDestroy {
         }
       })
       .catch(err => console.error('Failed to read clipboard:', err));
+  }
+
+  deleteComponent(): void {
+    const component = this.selectedComponent();
+    if (!component) return;
+
+    window.dispatchEvent(new CustomEvent('component-delete-requested', {
+      detail: { componentId: component.id }
+    }));
+
+    this.selectedComponent.set(null);
+    this.propertyForm.set(null);
+    this.propertyGroups.set([]);
   }
 }

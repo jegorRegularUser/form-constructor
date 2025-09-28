@@ -15,19 +15,116 @@ import { EditorPanelComponent } from '../editor-panel/editor-panel.component';
 })
 export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   
-  // Debug method for drag events
+  // Handle sidebar drag start events
   onSidebarDragStart(event: any, componentType: string) {
     console.log('📦 Sidebar drag started:', { componentType, event });
+    
+    // Initialize drag ghost for sidebar drag
+    if (this.editorPanel?.dragGhostComponent) {
+      this.editorPanel.dragGhostComponent.setVisible(true);
+      this.editorPanel.dragGhostComponent.setMiniPlaqueVisible(true);
+      
+      // Set mini plaque content based on component type
+      const { icon, label } = this.getComponentIconAndLabel(componentType);
+      this.editorPanel.dragGhostComponent.setMiniPlaqueContent(icon, label);
+    }
   }
-  private editorService = inject(EditorPanelService);
+
+  /**
+   * Get component icon and label for sidebar drag
+   */
+  private getComponentIconAndLabel(componentType: string): { icon: string; label: string } {
+    const iconMap: { [key: string]: { icon: string; label: string } } = {
+      'text-input': { icon: '📝', label: 'Text Input' },
+      'email-input': { icon: '📧', label: 'Email Input' },
+      'textarea': { icon: '📄', label: 'Textarea' },
+      'select': { icon: '📋', label: 'Select' },
+      'checkbox': { icon: '☑️', label: 'Checkbox' },
+      'button': { icon: '🔘', label: 'Button' },
+      'container': { icon: '📦', label: 'Container' }
+    };
+    
+    return iconMap[componentType] || { icon: '📝', label: 'Element' };
+  }
+  
+  // Handle drag move events from sidebar
+  onSidebarDragMoved(event: any) {
+    if (!this.editorPanel?.dragGhostComponent || !event?.event) return;
+
+    const pointerEvent = event.event instanceof PointerEvent
+      ? event.event
+      : (event.event?.originalEvent instanceof PointerEvent ? event.event.originalEvent : null);
+
+    if (!pointerEvent || !this.editorPanel.visibleCanvas) return;
+
+    const visibleCanvas = this.editorPanel.visibleCanvas.nativeElement;
+
+    // Update mini plaque to follow the pointer
+    this.editorPanel.dragGhostComponent.updateMiniPlaquePosition(pointerEvent.clientX, pointerEvent.clientY);
+    this.editorPanel.dragGhostComponent.setVisible(true);
+    this.editorPanel.dragGhostComponent.setMiniPlaqueVisible(true);
+
+    // Use drag-drop service to find drop target
+    const dropTarget = this.editorPanel.dragDropService.getCurrentDropTarget(pointerEvent.clientX, pointerEvent.clientY);
+    
+    if (dropTarget && this.editorPanel.dragGhostComponent) {
+      // Update insertion strip based on drop target
+      const { rect } = dropTarget.position;
+      const isHorizontal = dropTarget.layout === 'column';
+      
+      this.editorPanel.dragGhostComponent.setOrientation(isHorizontal ? 'horizontal' : 'vertical');
+      this.editorPanel.dragGhostComponent.updateInsertionStripRect(
+        rect.left,
+        rect.top,
+        rect.width,
+        rect.height
+      );
+      this.editorPanel.dragGhostComponent.setBlueStripVisible(true);
+      
+      // Set external drop target for editor panel
+      this.editorPanel.setExternalDropTarget({
+        containerId: dropTarget.containerId,
+        layout: dropTarget.layout,
+        index: dropTarget.position.index,
+        stripeRect: rect
+      });
+    }
+
+    // Auto-scroll near canvas edges
+    const canvasRect = visibleCanvas.getBoundingClientRect();
+    const edge = 24;
+    const scrollStep = 16;
+    
+    if (pointerEvent.clientY < canvasRect.top + edge) {
+      visibleCanvas.scrollBy({ top: -scrollStep, behavior: 'smooth' });
+    } else if (pointerEvent.clientY > canvasRect.bottom - edge) {
+      visibleCanvas.scrollBy({ top: scrollStep, behavior: 'smooth' });
+    }
+    
+    if (pointerEvent.clientX < canvasRect.left + edge) {
+      visibleCanvas.scrollBy({ left: -scrollStep, behavior: 'smooth' });
+    } else if (pointerEvent.clientX > canvasRect.right - edge) {
+      visibleCanvas.scrollBy({ left: scrollStep, behavior: 'smooth' });
+    }
+  }
+  
+  // Handle drag end events from sidebar
+  onSidebarDragEnd() {
+    if (this.editorPanel?.dragGhostComponent) {
+      // Reset drag ghost component
+      this.editorPanel.dragGhostComponent.reset();
+    }
+  }
+  public editorService = inject(EditorPanelService);
+  @ViewChild(EditorPanelComponent) public editorPanel!: EditorPanelComponent;
   
   @ViewChild('editorContainer', { static: false }) editorContainer!: ElementRef<HTMLElement>;
   
   // Layout state management
-  private sidebarCollapsed = signal(false);
+  public sidebarCollapsed = signal(false);
   public previewVisible = signal(true);
   public activePanel = signal<'editor' | 'preview' | 'code'>('editor');
-  private windowWidth = signal(window.innerWidth);
+  public windowWidth = signal(window.innerWidth);
   
   // Computed properties for layout classes
   readonly layoutClasses = computed(() => ({
@@ -60,7 +157,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   readonly isTablet = computed(() => this.windowWidth() <= 1024 && this.windowWidth() > 768);
 
   // Editor state
-  private hasUnsavedChanges = signal(false);
+  public hasUnsavedChanges = signal(false);
   readonly unsavedChanges = computed(() => this.hasUnsavedChanges());
 
 
@@ -219,7 +316,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
 
 
   
-  private lastFormChangeTimestamp = 0;
+  public lastFormChangeTimestamp = 0;
 
   /**
    * Setup event listeners for form changes
@@ -231,7 +328,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
     console.log('Editor initialized successfully');
   }
 
-  private setupFormChangeListeners(): void {
+  public setupFormChangeListeners(): void {
     // Listen for custom form changed events
     window.addEventListener('form:changed', (event: any) => {
       try {
@@ -266,7 +363,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   /**
    * Initialize preview synchronization
    */
-  private initializePreviewSync(): void {
+  public initializePreviewSync(): void {
     console.log('Preview synchronization initialized');
   }
   
@@ -275,11 +372,44 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   /**
    * Update code panel with generated code
    */
-  private updateCodePanel(data: any): void {
+  public updateCodePanel(data: any): void {
     // Update code panel content
     const codeContent = document.querySelector('.code-content pre code');
     if (codeContent && data.componentCode) {
       codeContent.textContent = data.componentCode;
     }
+  }
+
+  // Drag-and-drop logic for containers
+  onContainerDrop(event: any, containerType: 'vertical' | 'horizontal') {
+    const droppedComponent = event.item.data;
+    // Найти контейнер по типу
+    const container = this.editorService.findContainerByType(containerType);
+    if (container) {
+      this.editorService.addComponentToContainer(container.id, droppedComponent);
+      this.adjustContainerSize(container.id);
+    }
+  }
+
+  adjustContainerSize(containerId: string) {
+    // Получить контейнер и его дочерние элементы
+    const container = this.editorService.getComponentById(containerId);
+    if (!container) return;
+    const children = container.children ?? [];
+    // Для вертикального: высота = сумма высот детей, ширина = макс. ширина
+    // Для горизонтального: ширина = сумма ширин детей, высота = макс. высота
+    let totalHeight = 0, maxWidth = 0, totalWidth = 0, maxHeight = 0;
+    children.forEach((child: any) => {
+      totalHeight += child['height'] || 50;
+      maxWidth = Math.max(maxWidth, child['width'] || 200);
+      totalWidth += child['width'] || 200;
+      maxHeight = Math.max(maxHeight, child['height'] || 50);
+    });
+    if (container.properties?.['containerType'] === 'vertical') {
+      container.style = { ...container.style, height: `${totalHeight}px`, width: `${maxWidth}px` };
+    } else if (container.properties?.['containerType'] === 'horizontal') {
+      container.style = { ...container.style, width: `${totalWidth}px`, height: `${maxHeight}px` };
+    }
+    this.editorService.updateComponent(container.id, container);
   }
 }

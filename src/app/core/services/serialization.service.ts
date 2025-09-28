@@ -30,8 +30,8 @@ export interface SerializationOptions {
   providedIn: 'root'
 })
 export class SerializationService {
-  private lastSerialized = signal<SerializedForm | null>(null);
-  private serializationHistory = signal<SerializedForm[]>([]);
+  public lastSerialized = signal<SerializedForm | null>(null);
+  public serializationHistory = signal<SerializedForm[]>([]);
 
   // Computed properties
   readonly hasLastSerialized = computed(() => this.lastSerialized() !== null);
@@ -138,7 +138,7 @@ export class SerializationService {
   /**
    * Create metadata for serialization
    */
-  private createMetadata(options: SerializationOptions): SerializationMetadata {
+  public createMetadata(options: SerializationOptions): SerializationMetadata {
     const now = new Date().toISOString();
     
     return {
@@ -153,7 +153,7 @@ export class SerializationService {
   /**
    * Normalize structure for consistent serialization
    */
-  private normalizeStructure(structure: any): FormStructure {
+  public normalizeStructure(structure: any): FormStructure {
     // Ensure all required properties exist
     const normalized: FormStructure = {
       id: structure.id || this.generateId(),
@@ -193,14 +193,14 @@ export class SerializationService {
   /**
    * Normalize form elements
    */
-  private normalizeElements(elements: any[]): FormElementType[] {
+  public normalizeElements(elements: any[]): FormElementType[] {
     return elements.map(element => this.normalizeElement(element));
   }
 
   /**
    * Normalize individual form element
    */
-  private normalizeElement(element: any): FormElementType {
+  public normalizeElement(element: any): FormElementType {
     const normalized: any = {
       id: element.id || element.cid || this.generateId(),
       type: this.normalizeComponentType(element.type || element.get?.('type')),
@@ -229,7 +229,7 @@ export class SerializationService {
   /**
    * Extract element properties
    */
-  private extractElementProperties(element: any): any {
+  public extractElementProperties(element: any): any {
     const properties: any = {};
     
     // Extract from attributes
@@ -261,7 +261,7 @@ export class SerializationService {
   /**
    * Extract validation rules from element
    */
-  private extractValidationRules(element: any): any[] {
+  public extractValidationRules(element: any): any[] {
     const rules: any[] = [];
     const props = this.extractElementProperties(element);
     
@@ -309,7 +309,7 @@ export class SerializationService {
   /**
    * Validate form structure
    */
-  private validateFormStructure(structure: any): void {
+  public validateFormStructure(structure: any): void {
     if (!structure) {
       throw new Error('Structure is null or undefined');
     }
@@ -333,7 +333,7 @@ export class SerializationService {
   /**
    * Validate individual element
    */
-  private validateElement(element: any, path: string): void {
+  public validateElement(element: any, path: string): void {
     if (!element.id) {
       throw new Error(`Missing element ID at ${path}`);
     }
@@ -353,7 +353,7 @@ export class SerializationService {
   /**
    * Utility methods
    */
-  private normalizeComponentType(type: string): string {
+  public normalizeComponentType(type: string): string {
     const typeMap: { [key: string]: string } = {
       'angular-input-field': 'input',
       'angular-select-field': 'select',
@@ -367,18 +367,18 @@ export class SerializationService {
     return typeMap[type] || type || 'div';
   }
 
-  private isFormElement(type: string): boolean {
+  public isFormElement(type: string): boolean {
     const formTypes = ['input', 'select', 'checkbox', 'radio', 'textarea'];
     return formTypes.includes(type);
   }
 
-  private isVersionCompatible(version: string): boolean {
+  public isVersionCompatible(version: string): boolean {
     // Simple version compatibility check
     const supportedVersions = ['1.0.0'];
     return supportedVersions.includes(version);
   }
 
-  private generateChecksum(data: any): string {
+  public generateChecksum(data: any): string {
     // Simple checksum generation (in production, use a proper hash function)
     const jsonString = JSON.stringify(data);
     let hash = 0;
@@ -390,11 +390,11 @@ export class SerializationService {
     return Math.abs(hash).toString(16);
   }
 
-  private generateId(): string {
+  public generateId(): string {
     return 'form-' + Math.random().toString(36).substr(2, 9);
   }
 
-  private addToHistory(serializedForm: SerializedForm): void {
+  public addToHistory(serializedForm: SerializedForm): void {
     this.serializationHistory.update(history => {
       const newHistory = [...history, serializedForm];
       // Keep only last 10 entries

@@ -89,7 +89,7 @@
 ### **Angular 19 Modern Features**
 ```typescript
 // Signals для reactive state
-private selectedComponent = signal<Component | null>(null);
+public selectedComponent = signal<Component | null>(null);
 
 // Computed для derived state  
 readonly hasSelection = computed(() => this.selectedComponent() !== null);
