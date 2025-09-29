@@ -8,6 +8,7 @@ import {
 import { DragStateService } from './services/drag-state.service';
 import { EditorElement, DropPosition } from './interfaces/drag-data.model';
 import { InputComponent } from './blocks/input.component';
+import { TextareaComponent } from './blocks/textarea.component';
 import { CommonModule } from '@angular/common';
 
 // Базовый интерфейс для всех элементов редактора
@@ -20,7 +21,7 @@ export interface BaseEditorComponent {
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, InputComponent],
+  imports: [CommonModule, InputComponent, TextareaComponent],
   template: `
     <div
       class="editor"
@@ -43,24 +44,24 @@ export interface BaseEditorComponent {
               [value]="element.value"
               [id]="element.id"
               [isDragged]="isElementDragged(element.id)"
-              (mousedown)="
+              (dragHandleMouseDown)="
                 onExistingElementDragStart($event, element.id, rowIndex, colIndex)
               "
             ></app-input>
             
-            <!-- Здесь можно добавить другие типы компонентов -->
-            <!-- 
-            <app-button
-              *ngIf="element.type === 'button'"
-              #buttonElement
-              [text]="element.text"
+            <!-- Textarea компонент -->
+            <app-textarea
+              *ngIf="element.type === 'textarea'"
+              #textareaElement
+              [value]="element.value"
               [id]="element.id"
+              [rows]="element.rows || 3"
+              [placeholder]="element.placeholder || 'Enter text here...'"
               [isDragged]="isElementDragged(element.id)"
-              (mousedown)="
+              (dragHandleMouseDown)="
                 onExistingElementDragStart($event, element.id, rowIndex, colIndex)
               "
-            ></app-button>
-            -->
+            ></app-textarea>
           </ng-container>
         </div>
 
@@ -151,6 +152,7 @@ export interface BaseEditorComponent {
 export class EditorComponent implements AfterViewInit {
   // Универсальный QueryList для всех типов компонентов
   @ViewChildren('inputElement') inputElements!: QueryList<BaseEditorComponent>;
+  @ViewChildren('textareaElement') textareaElements!: QueryList<BaseEditorComponent>;
   // Добавьте другие QueryList для других типов компонентов:
   // @ViewChildren('buttonElement') buttonElements!: QueryList<BaseEditorComponent>;
 
@@ -191,6 +193,9 @@ export class EditorComponent implements AfterViewInit {
     this.inputElements.changes.subscribe(() => {
       this.updateDropPositions();
     });
+    this.textareaElements.changes.subscribe(() => {
+      this.updateDropPositions();
+    });
     // Добавьте подписки для других типов элементов
   }
 
@@ -200,6 +205,9 @@ export class EditorComponent implements AfterViewInit {
     
     // Добавляем input элементы
     allElements.push(...this.inputElements.toArray());
+    
+    // Добавляем textarea элементы
+    allElements.push(...this.textareaElements.toArray());
     
     // Добавьте другие типы элементов:
     // allElements.push(...this.buttonElements.toArray());
@@ -229,8 +237,8 @@ export class EditorComponent implements AfterViewInit {
   onDrop() {
     if (!this.currentDropPosition || !this.dragData) return;
 
-    if (this.dragData.type === 'input') {
-      this.insertNewElement(this.dragData.elementType || 'input');
+    if (this.dragData.type === 'input' || this.dragData.type === 'textarea') {
+      this.insertNewElement(this.dragData.elementType || this.dragData.type);
     } else if (this.dragData.type === 'existing') {
       this.moveExistingElement();
     }
@@ -245,6 +253,7 @@ export class EditorComponent implements AfterViewInit {
     rowIndex: number,
     colIndex: number
   ) {
+
     this.dragStateService.setDragData({
       type: 'existing',
       id,
@@ -270,6 +279,7 @@ export class EditorComponent implements AfterViewInit {
     document.addEventListener('mouseup', upListener);
 
     event.preventDefault();
+    event.stopPropagation();
   }
 
   private calculateDropPosition(
@@ -279,7 +289,7 @@ export class EditorComponent implements AfterViewInit {
   ) {
     const elementNodes = this.getAllEditorElements();
 
-    if (this.dragData?.type === 'input') {
+    if (this.dragData?.type === 'input' || this.dragData?.type === 'textarea') {
       this.calculateDropPositionFromSidebar(
         mouseX,
         mouseY,
@@ -647,7 +657,7 @@ export class EditorComponent implements AfterViewInit {
     return 80 + rowIndex * 60;
   }
 
-  private insertNewElement(elementType: string) {
+  private insertNewElement(elementType: 'input' | 'textarea') {
     let newElement: EditorElement;
 
     switch (elementType) {
@@ -656,6 +666,15 @@ export class EditorComponent implements AfterViewInit {
           id: 'input-' + Date.now(),
           type: 'input',
           value: 'Input Field',
+        };
+        break;
+      case 'textarea':
+        newElement = {
+          id: 'textarea-' + Date.now(),
+          type: 'textarea',
+          value: 'Textarea Field',
+          rows: 3,
+          placeholder: 'Enter text here...'
         };
         break;
       // Добавьте другие типы элементов здесь:
@@ -668,9 +687,10 @@ export class EditorComponent implements AfterViewInit {
       //   };
       //   break;
       default:
+        // This should not happen with proper type checking, but handle it gracefully
         newElement = {
           id: 'element-' + Date.now(),
-          type: elementType,
+          type: 'input', // Default to input if unknown type
           value: ''
         };
     }
@@ -695,6 +715,11 @@ export class EditorComponent implements AfterViewInit {
       this.currentDropPosition.targetRowIndex !== undefined
     ) {
       const rowIndex = this.currentDropPosition.targetRowIndex;
+
+      // Check if the row exists, if not create it
+      if (!this.elements[rowIndex]) {
+        this.elements[rowIndex] = [];
+      }
 
       if (this.currentDropPosition.targetId) {
         const colIndex = this.elements[rowIndex].findIndex(
@@ -749,6 +774,11 @@ export class EditorComponent implements AfterViewInit {
       this.currentDropPosition.targetRowIndex !== undefined
     ) {
       const rowIndex = this.currentDropPosition.targetRowIndex;
+
+      // Check if the row exists, if not create it
+      if (!this.elements[rowIndex]) {
+        this.elements[rowIndex] = [];
+      }
 
       if (this.currentDropPosition.targetId) {
         const colIndex = this.elements[rowIndex].findIndex(

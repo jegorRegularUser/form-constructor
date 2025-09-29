@@ -141,3 +141,9 @@ table {
   background-color: var(--primary-200);
   color: var(--primary-900);
 }
+
+/* Drag handle visibility on hover */
+app-input:hover app-drag-handle .drag-handle,
+app-textarea:hover app-drag-handle .drag-handle {
+  opacity: 1 !important;
+}

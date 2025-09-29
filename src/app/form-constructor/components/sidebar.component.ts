@@ -1,17 +1,25 @@
 import { Component } from '@angular/core';
 import { DragStateService } from './services/drag-state.service';
+import { DragData } from './interfaces/drag-data.model';
 
 @Component({
   selector: 'app-sidebar',
   template: `
     <div class="sidebar">
       <h3>Components</h3>
-      <div 
-        class="draggable-input"
-        (mousedown)="onDragStart($event)"
-        [class.dragging]="isDragging"
+      <div
+        class="draggable-item draggable-input"
+        (mousedown)="onDragStart($event, 'input')"
+        [class.dragging]="isDragging && currentDragType === 'input'"
       >
         input
+      </div>
+      <div
+        class="draggable-item draggable-textarea"
+        (mousedown)="onDragStart($event, 'textarea')"
+        [class.dragging]="isDragging && currentDragType === 'textarea'"
+      >
+        textarea
       </div>
     </div>
   `,
@@ -31,7 +39,7 @@ import { DragStateService } from './services/drag-state.service';
       font-weight: 600;
     }
 
-    .draggable-input {
+    .draggable-item {
       width: 120px;
       height: 40px;
       background: #e9ecef;
@@ -45,14 +53,15 @@ import { DragStateService } from './services/drag-state.service';
       color: #495057;
       transition: all 0.2s ease;
       user-select: none;
+      margin-bottom: 10px;
     }
 
-    .draggable-input:hover {
+    .draggable-item:hover {
       background: #dee2e6;
       border-color: #adb5bd;
     }
 
-    .draggable-input.dragging {
+    .draggable-item.dragging {
       opacity: 0.5;
       cursor: grabbing;
     }
@@ -60,15 +69,20 @@ import { DragStateService } from './services/drag-state.service';
 })
 export class SidebarComponent {
   isDragging = false;
+  currentDragType: 'input' | 'textarea' | null = null;
 
   constructor(private dragStateService: DragStateService) {}
 
-  onDragStart(event: MouseEvent) {
+  onDragStart(event: MouseEvent, type: 'input' | 'textarea') {
     this.isDragging = true;
+    this.currentDragType = type;
     
-    this.dragStateService.setDragData({
-      type: 'input'
-    });
+    const dragData: DragData = {
+      type: type,
+      elementType: type
+    };
+    
+    this.dragStateService.setDragData(dragData);
 
     const dragImage = (event.target as HTMLElement).cloneNode(true) as HTMLElement;
     dragImage.style.position = 'absolute';
@@ -82,6 +96,7 @@ export class SidebarComponent {
 
     const upListener = () => {
       this.isDragging = false;
+      this.currentDragType = null;
       this.dragStateService.clearDragData();
       this.dragStateService.notifyDragEnd();
       document.removeEventListener('mousemove', moveListener);

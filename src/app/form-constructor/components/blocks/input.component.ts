@@ -1,69 +1,32 @@
-import { Component, Input, ElementRef, HostBinding } from '@angular/core';
+import { Component, Input, ElementRef } from '@angular/core';
+import { BaseFormBlockComponent } from './base-form-block/base-form-block.component';
+import { DragHandleComponent } from './drag-handle/drag-handle.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-input',
+  standalone: true,
+  imports: [CommonModule, DragHandleComponent],
   template: `
-  <div class="input-content">
-    <span class="input-text">{{ value }}</span>
-    <ng-content></ng-content>
-  </div>
-`,
+    <div class="form-block-content">
+      <!-- Use the reusable drag handle component -->
+      <app-drag-handle (mouseDown)="onDragHandleMouseDown($event)"></app-drag-handle>
+      <span class="input-text">{{ value }}</span>
+    </div>
+  `,
   styles: [`
-    :host {
-      display: block;
-      min-width: 120px;
-      min-height: 40px;
-      background: #f5f5f5;
-      border: 2px solid #ddd;
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin: 4px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      flex: 1;
-    }
-
-    :host(.dragged) {
-      opacity: 0.3 !important;
-      transform: scale(0.95);
-      cursor: grabbing;
-      pointer-events: none;
-    }
-
-    :host(.drop-preview) {
-      border: 2px dashed #2196F3;
-      background: rgba(33, 150, 243, 0.1);
-    }
-
-    .input-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-    }
-
+    @import './drag-styles.css';
+    
     .input-text {
       font-weight: 500;
       color: #333;
     }
   `]
 })
-export class InputComponent {
+export class InputComponent extends BaseFormBlockComponent {
   @Input() value: string = '';
-  @Input() id: string = '';
-  @Input() set isDragged(value: boolean) {
-    this._isDragged = value;
-  }
-
-  private _isDragged = false;
-
-  @HostBinding('class.dragged') get draggedClass() { 
-    return this._isDragged; 
-  }
-
-  constructor(private elementRef: ElementRef) {}
-
-  getNativeElement(): HTMLElement {
-    return this.elementRef.nativeElement;
+  
+  constructor(elementRef: ElementRef) {
+    super(elementRef);
   }
 }
