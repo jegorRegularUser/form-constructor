@@ -1,6 +1,12 @@
 import { Directive, Input, ElementRef, HostBinding, Output, EventEmitter, HostListener } from '@angular/core';
 
-@Directive()
+@Directive({
+  selector: '[appFormBlock]',
+  host: {
+    'class': 'form-block-wrapper',
+    '[class.dragged]': '_isDragged'
+  }
+})
 export abstract class BaseFormBlockComponent {
   @Input() id: string = '';
   @Input() set isDragged(value: boolean) {
@@ -10,10 +16,6 @@ export abstract class BaseFormBlockComponent {
 
   protected _isDragged = false;
 
-  @HostBinding('class.dragged') get draggedClass() {
-    return this._isDragged;
-  }
-
   constructor(protected elementRef: ElementRef) {}
 
   getNativeElement(): HTMLElement {
@@ -21,17 +23,13 @@ export abstract class BaseFormBlockComponent {
   }
 
   onDragHandleMouseDown(event: MouseEvent) {
-    // Emit the event to parent component
     this.dragHandleMouseDown.emit(event);
   }
   
-  // Prevent drag start when clicking on the component itself
   @HostListener('mousedown', ['$event'])
   onComponentMouseDown(event: MouseEvent) {
-    // Check if the click is on the drag handle
     const isDragHandle = (event.target as HTMLElement).closest('.drag-handle');
     if (!isDragHandle) {
-      // Prevent the default drag behavior
       event.stopPropagation();
     }
   }

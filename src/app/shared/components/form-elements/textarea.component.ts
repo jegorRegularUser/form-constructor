@@ -2,53 +2,51 @@ import { Component, Input, ElementRef } from '@angular/core';
 import { BaseFormBlockComponent } from './base-form-block.component';
 import { DragHandleComponent } from './drag-handle.component';
 import { CommonModule } from '@angular/common';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-textarea',
   standalone: true,
-  imports: [CommonModule, DragHandleComponent],
+  imports: [CommonModule, DragHandleComponent, NzInputModule, FormsModule],
   template: `
-    <div class="textarea-content">
-      <!-- Use the reusable drag handle component -->
+    <div class="form-block-content">
       <app-drag-handle (mouseDown)="onDragHandleMouseDown($event)"></app-drag-handle>
-      <textarea
+      <textarea 
+        nz-input 
+        [(ngModel)]="value" 
+        [placeholder]="placeholder"
+        [nzAutosize]="{ minRows: rows, maxRows: 6 }"
         class="textarea-field"
-        [value]="value"
-        (input)="onInput($event)"
-        [attr.rows]="rows"
-        [attr.placeholder]="placeholder"
       ></textarea>
     </div>
   `,
   styles: [`
     @import './drag-styles.css';
     
-    .textarea-content {
+    .form-block-content {
       display: flex;
       flex-direction: column;
       height: 100%;
       position: relative;
+      min-height: 60px;
     }
 
     .textarea-field {
       flex: 1;
-      border: none;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
       background: transparent;
-      resize: vertical;
-      font-family: inherit;
+      resize: none;
+      padding: 0;
       font-size: 14px;
-      color: #333;
-      outline: none;
-      padding: 8px 0;
-      line-height: 1.4;
-    }
-
-    .textarea-field:focus {
-      outline: none;
+      line-height: 1.5715;
+      color: rgba(0, 0, 0, 0.85);
     }
 
     .textarea-field::placeholder {
-      color: #999;
+      color: rgba(0, 0, 0, 0.25);
     }
   `]
 })
@@ -59,9 +57,5 @@ export class TextareaComponent extends BaseFormBlockComponent {
   
   constructor(elementRef: ElementRef) {
     super(elementRef);
-  }
-
-  onInput(event: Event) {
-    this.value = (event.target as HTMLTextAreaElement).value;
   }
 }
