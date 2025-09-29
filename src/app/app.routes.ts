@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import { LayoutComponent } from './form-constructor/components/layout.component';
+import { MainLayoutComponent } from './layouts/main-layout.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: LayoutComponent
+    component: MainLayoutComponent
   }
 ];
