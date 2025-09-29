@@ -1,6 +1,48 @@
 /* editor-panel.component.css */
 
 /* Базовые стили */
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--gray-50);
+}
+
+.editor-content {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: white;
+  border: 1px dashed var(--gray-200);
+  border-radius: 8px;
+  margin: 0.5rem;
+}
+
+.element-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  min-height: 40px;
+  align-items: flex-start;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--gray-500);
+  font-size: 1rem;
+  border: 2px dashed var(--gray-300);
+  border-radius: 8px;
+  background: var(--gray-50);
+}
+
 .editor-container {
   position: relative;
   width: 100%;

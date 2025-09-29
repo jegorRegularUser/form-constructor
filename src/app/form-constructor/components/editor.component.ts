@@ -5,8 +5,8 @@ import {
   ViewChildren,
   AfterViewInit,
 } from '@angular/core';
-import { DragStateService } from './test-services/drag-state.service';
-import { EditorElement, DropPosition } from './test-interfaces/drag-data.model';
+import { DragStateService } from './services/drag-state.service';
+import { EditorElement, DropPosition } from './interfaces/drag-data.model';
 import { InputComponent } from './blocks/input.component';
 import { CommonModule } from '@angular/common';
 
@@ -18,7 +18,7 @@ export interface BaseEditorComponent {
 }
 
 @Component({
-  selector: 'test-editor',
+  selector: 'app-editor',
   standalone: true,
   imports: [CommonModule, InputComponent],
   template: `
@@ -148,7 +148,7 @@ export interface BaseEditorComponent {
     `,
   ],
 })
-export class TestEditorComponent implements AfterViewInit {
+export class EditorComponent implements AfterViewInit {
   // Универсальный QueryList для всех типов компонентов
   @ViewChildren('inputElement') inputElements!: QueryList<BaseEditorComponent>;
   // Добавьте другие QueryList для других типов компонентов:

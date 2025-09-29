@@ -556,3 +556,41 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--gray-500);
 }
+
+/* ===== DRAG AND DROP ===== */
+.drag-mini-plaque {
+  position: fixed;
+  z-index: 10001;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.insertion-strip {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.cdk-drag-preview {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.cdk-drag-placeholder {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}

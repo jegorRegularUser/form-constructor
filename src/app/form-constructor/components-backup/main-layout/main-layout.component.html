@@ -100,7 +100,6 @@
         <div class="component-grid" cdkDropList id="sidebar-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'text-input'"
                (cdkDragStarted)="onSidebarDragStart($event, 'text-input')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -112,7 +111,6 @@
           </div>
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'email-input'"
                (cdkDragStarted)="onSidebarDragStart($event, 'email-input')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -124,7 +122,6 @@
           </div>
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'textarea'"
                (cdkDragStarted)="onSidebarDragStart($event, 'textarea')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -136,7 +133,6 @@
           </div>
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'select'"
                (cdkDragStarted)="onSidebarDragStart($event, 'select')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -148,7 +144,6 @@
           </div>
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'checkbox'"
                (cdkDragStarted)="onSidebarDragStart($event, 'checkbox')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -166,7 +161,6 @@
         <div class="component-grid" cdkDropList id="sidebar-layout-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'container'"
                (cdkDragStarted)="onSidebarDragStart($event, 'container')"
                (cdkDragMoved)="onSidebarDragMoved($event)"
@@ -184,7 +178,6 @@
         <div class="component-grid" cdkDropList id="sidebar-actions-list" [cdkDropListData]="[]" [cdkDropListSortingDisabled]="true">
           <div class="component-block"
                cdkDrag
-               [cdkDragDisabled]="editorPanel?.dragInProgress() || false"
                [cdkDragData]="'button'"
                (cdkDragStarted)="onSidebarDragStart($event, 'button')"
                (cdkDragMoved)="onSidebarDragMoved($event)"

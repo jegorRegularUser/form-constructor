@@ -1,0 +1,94 @@
+<div
+  class="editor-panel"
+  (mousemove)="onMouseMove($event)"
+  (mouseleave)="onMouseLeave()"
+  (mouseup)="onDrop()"
+>
+  <!-- Toolbar -->
+  <app-editor-toolbar
+    [componentCount]="elements.length"
+    (clearCanvas)="clearCanvas()"
+    (exportForm)="exportForm()"
+  ></app-editor-toolbar>
+
+  <div class="editor-content" #visibleCanvas>
+    <div
+      *ngFor="let row of elements; let rowIndex = index"
+      class="element-row"
+      [attr.data-row-index]="rowIndex"
+    >
+      <!-- Universal rendering of elements -->
+      <ng-container *ngFor="let element of row; let colIndex = index">
+        <!-- Input component -->
+        <app-form-element
+          *ngIf="element.type === 'input' || element.type === 'text-input' || element.type === 'email-input'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { label: element.value || element.type, placeholder: 'Enter ' + element.type, value: '' } }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+        
+        <!-- Textarea component -->
+        <app-form-element
+          *ngIf="element.type === 'textarea'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { label: element.value || 'Textarea', placeholder: 'Enter text...', rows: 3 } }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+
+        <!-- Select component -->
+        <app-form-element
+          *ngIf="element.type === 'select'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { label: element.value || 'Select', options: ['Option 1', 'Option 2', 'Option 3'] } }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+
+        <!-- Checkbox component -->
+        <app-form-element
+          *ngIf="element.type === 'checkbox'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { label: element.value || 'Checkbox', checked: false } }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+
+        <!-- Button component -->
+        <app-form-element
+          *ngIf="element.type === 'button'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { text: element.value || 'Button', variant: 'primary', fullWidth: false } }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+
+        <!-- Container component -->
+        <app-form-element
+          *ngIf="element.type === 'container'"
+          #formElement
+          [component]="{ id: element.id, type: element.type, label: element.type, properties: { layout: 'flex', direction: 'column', gap: '1rem', padding: '1rem', width: '100%' }, children: [] }"
+          [isDragged]="isElementDragged(element.id)"
+          (click)="onElementClick(element, $event)"
+        ></app-form-element>
+      </ng-container>
+    </div>
+
+    <div *ngIf="elements.length === 0" class="empty-state">
+      Drag components here to start building
+    </div>
+  </div>
+
+  <!-- Drop indicator bar -->
+  <div
+    *ngIf="showDropIndicator"
+    class="drop-indicator active"
+    [class.horizontal]="indicatorOrientation === 'horizontal'"
+    [class.vertical]="indicatorOrientation === 'vertical'"
+    [style.left]="dropIndicatorLeft + 'px'"
+    [style.top]="dropIndicatorTop + 'px'"
+    [style.width]="dropIndicatorWidth + 'px'"
+    [style.height]="dropIndicatorHeight + 'px'"
+  ></div>
+</div>

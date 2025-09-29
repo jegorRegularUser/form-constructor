@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { DragStateService } from './test-services/drag-state.service';
+import { DragStateService } from './services/drag-state.service';
 
 @Component({
-  selector: 'test-sidebar',
+  selector: 'app-sidebar',
   template: `
     <div class="sidebar">
       <h3>Components</h3>
@@ -58,7 +58,7 @@ import { DragStateService } from './test-services/drag-state.service';
     }
   `]
 })
-export class TestSidebarComponent {
+export class SidebarComponent {
   isDragging = false;
 
   constructor(private dragStateService: DragStateService) {}

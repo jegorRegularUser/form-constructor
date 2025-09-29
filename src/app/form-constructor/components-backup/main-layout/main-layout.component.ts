@@ -5,6 +5,7 @@ import { EditorPanelService } from '../editor-panel/editor-panel.service';
 import { PropertyPanelComponent } from '../property-panel/property-panel.component';
 import { PreviewPanelComponent } from '../preview-panel/preview-panel.component';
 import { EditorPanelComponent } from '../editor-panel/editor-panel.component';
+import { DragDropService } from '../../services/drag-drop.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -19,15 +20,27 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   onSidebarDragStart(event: any, componentType: string) {
     console.log('📦 Sidebar drag started:', { componentType, event });
     
-    // Initialize drag ghost for sidebar drag
-    if (this.editorPanel?.dragGhostComponent) {
-      this.editorPanel.dragGhostComponent.setVisible(true);
-      this.editorPanel.dragGhostComponent.setMiniPlaqueVisible(true);
-      
-      // Set mini plaque content based on component type
-      const { icon, label } = this.getComponentIconAndLabel(componentType);
-      this.editorPanel.dragGhostComponent.setMiniPlaqueContent(icon, label);
-    }
+    // Initialize drag ghost for sidebar drag using the drag-drop service
+    const { icon, label } = this.getComponentIconAndLabel(componentType);
+    
+    // Create a synthetic event object that matches what the service expects
+    const syntheticEvent = {
+      item: {
+        data: {
+          type: componentType,
+          icon,
+          label
+        }
+      },
+      source: {
+        dropContainer: {
+          id: 'sidebar'
+        }
+      },
+      event: event // Pass the original event for positioning
+    };
+    
+    this.dragDropService.startDrag(syntheticEvent);
   }
 
   /**
@@ -49,7 +62,7 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   
   // Handle drag move events from sidebar
   onSidebarDragMoved(event: any) {
-    if (!this.editorPanel?.dragGhostComponent || !event?.event) return;
+    if (!event?.event) return;
 
     const pointerEvent = event.event instanceof PointerEvent
       ? event.event
@@ -59,27 +72,29 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
 
     const visibleCanvas = this.editorPanel.visibleCanvas.nativeElement;
 
-    // Update mini plaque to follow the pointer
-    this.editorPanel.dragGhostComponent.updateMiniPlaquePosition(pointerEvent.clientX, pointerEvent.clientY);
-    this.editorPanel.dragGhostComponent.setVisible(true);
-    this.editorPanel.dragGhostComponent.setMiniPlaqueVisible(true);
+    // Create a synthetic event object that matches what the service expects
+    const syntheticEvent = {
+      event: pointerEvent // Pass the original pointer event
+    };
+
+    // Update drag position using the drag-drop service
+    this.dragDropService.updateDrag(syntheticEvent);
 
     // Use drag-drop service to find drop target
-    const dropTarget = this.editorPanel.dragDropService.getCurrentDropTarget(pointerEvent.clientX, pointerEvent.clientY);
+    const dropTarget = this.dragDropService.getCurrentDropTarget(pointerEvent.clientX, pointerEvent.clientY);
     
-    if (dropTarget && this.editorPanel.dragGhostComponent) {
+    if (dropTarget) {
       // Update insertion strip based on drop target
       const { rect } = dropTarget.position;
       const isHorizontal = dropTarget.layout === 'column';
       
-      this.editorPanel.dragGhostComponent.setOrientation(isHorizontal ? 'horizontal' : 'vertical');
-      this.editorPanel.dragGhostComponent.updateInsertionStripRect(
-        rect.left,
-        rect.top,
-        rect.width,
-        rect.height
-      );
-      this.editorPanel.dragGhostComponent.setBlueStripVisible(true);
+      // Update drop indicator position using the editor panel's properties
+      this.editorPanel.dropIndicatorLeft = rect.left;
+      this.editorPanel.dropIndicatorTop = rect.top;
+      this.editorPanel.dropIndicatorWidth = rect.width;
+      this.editorPanel.dropIndicatorHeight = rect.height;
+      this.editorPanel.indicatorOrientation = isHorizontal ? 'horizontal' : 'vertical';
+      this.editorPanel.showDropIndicator = true;
       
       // Set external drop target for editor panel
       this.editorPanel.setExternalDropTarget({
@@ -110,12 +125,19 @@ export class MainLayoutComponent implements AfterViewInit, OnDestroy {
   
   // Handle drag end events from sidebar
   onSidebarDragEnd() {
-    if (this.editorPanel?.dragGhostComponent) {
-      // Reset drag ghost component
-      this.editorPanel.dragGhostComponent.reset();
-    }
+    // Create a synthetic event object that matches what the service expects
+    const syntheticEvent = {
+      event: null,
+      item: {
+        data: this.dragDropService.currentDragComponent
+      }
+    };
+    
+    // End the drag operation
+    this.dragDropService.endDrag(syntheticEvent);
   }
   public editorService = inject(EditorPanelService);
+  public dragDropService = inject(DragDropService);
   @ViewChild(EditorPanelComponent) public editorPanel!: EditorPanelComponent;
   
   @ViewChild('editorContainer', { static: false }) editorContainer!: ElementRef<HTMLElement>;

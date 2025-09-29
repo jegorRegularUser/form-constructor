@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { DragData, DropPosition } from '../test-interfaces/drag-data.model';
+import { DragData, DropPosition } from '../interfaces/drag-data.model';
 
 @Injectable({
   providedIn: 'root'

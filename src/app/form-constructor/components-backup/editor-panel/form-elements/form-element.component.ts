@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DroppedComponent } from '../../../../core/models/component.model';
+import { BaseEditorComponent } from '../../../../interfaces/dnd.interface';
 
 @Component({
   selector: 'app-form-element',
@@ -105,10 +106,36 @@ import { DroppedComponent } from '../../../../core/models/component.model';
     </div>
   `,
   styles: `
-    .component-preview { 
-      width: 100%; 
-      min-width: 0; 
-      box-sizing: border-box; 
+    :host {
+      display: block;
+      min-width: 120px;
+      min-height: 40px;
+      background: #f5f5f5;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+    }
+
+    :host(.dragged) {
+      opacity: 0.3 !important;
+      transform: scale(0.95);
+      cursor: grabbing;
+      pointer-events: none;
+    }
+
+    :host(.drop-preview) {
+      border: 2px dashed #2196F3;
+      background: rgba(33, 150, 243, 0.1);
+    }
+
+    .component-preview {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .form-container {
@@ -147,8 +174,8 @@ import { DroppedComponent } from '../../../../core/models/component.model';
       min-width: 0;
     }
 
-    .nested-component { 
-      width: 100%; 
+    .nested-component {
+      width: 100%;
     }
 
     .form-control {
@@ -163,11 +190,22 @@ import { DroppedComponent } from '../../../../core/models/component.model';
     }
   `
 })
-export class FormElementComponent {
+export class FormElementComponent implements BaseEditorComponent {
   @Input() component!: DroppedComponent;
   @Input() isSelected: boolean = false;
   @Input() selectedComponentId: string | null = null;
+  @Input() set isDragged(value: boolean) {
+    this._isDragged = value;
+  }
   @Output() click = new EventEmitter<{component: DroppedComponent, event: MouseEvent}>();
+
+  private _isDragged = false;
+
+  @HostBinding('class.dragged') get draggedClass() {
+    return this._isDragged;
+  }
+
+  constructor(private elementRef: ElementRef) {}
 
   getFilteredChildren(component: DroppedComponent): DroppedComponent[] {
     return (component.children ?? []).filter((x): x is DroppedComponent => !!x);
@@ -191,5 +229,18 @@ export class FormElementComponent {
 
   onElementClick(component: DroppedComponent, event: MouseEvent) {
     this.click.emit({ component, event });
+  }
+
+  // Implementation of BaseEditorComponent interface
+  get id(): string {
+    return this.component.id;
+  }
+
+  getNativeElement(): HTMLElement {
+    return this.elementRef.nativeElement;
+  }
+
+  get isDragged(): boolean {
+    return this._isDragged;
   }
 }

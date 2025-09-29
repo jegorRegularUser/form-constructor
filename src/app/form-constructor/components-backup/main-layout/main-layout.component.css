@@ -75,6 +75,7 @@
   background-color: var(--gray-50);
   overflow: hidden;
   position: relative;
+  display: block;
 }
 
 /* Preview area */

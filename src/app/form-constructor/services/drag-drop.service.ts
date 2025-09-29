@@ -1,6 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { DroppedComponent, DropZoneState, ComponentType } from '../../core/models/component.model';
 import { COMPONENT_TYPES, DROP_ZONE_POSITIONS, DRAG_SOURCES, CSS_CLASSES, DEFAULT_VALUES, COLORS, ID_PREFIXES, SELECTORS } from '../constants/editor.constants';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { DragData, DropPosition } from '../../interfaces/dnd.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -21,11 +23,23 @@ export class DragDropService {
   // Private properties for drag elements
   private insertionStrip: HTMLElement | null = null;
 
+  // New properties from test service
+  private dragDataSubject = new BehaviorSubject<DragData | null>(null);
+  private dropPositionSubject = new BehaviorSubject<DropPosition | null>(null);
+  private dragEndSubject = new Subject<void>();
+
+  dragData$ = this.dragDataSubject.asObservable();
+  dropPosition$ = this.dropPositionSubject.asObservable();
+  dragEnd$ = this.dragEndSubject.asObservable();
+
   /**
    * Initialize drag operation
    */
   public startDrag(event: any): void {
-    this.isDragging.set(true);
+    // Delay setting isDragging to prevent immediate disabling of drag elements
+    setTimeout(() => {
+      this.isDragging.set(true);
+    }, 10);
     
     // Determine drag source
     const previousContainer = event.source?.dropContainer?.id;
@@ -47,15 +61,29 @@ export class DragDropService {
     // Create ghost element
     this.createDragGhost(event);
     
-    // Hide CDK preview
-    this.hideCdkPreview();
+    // Don't hide CDK preview immediately - let it show briefly before replacing with our custom ghost
+    setTimeout(() => {
+      this.hideCdkPreview();
+    }, 50);
   }
 
   /**
    * Update drag position and drop zones
    */
   public updateDrag(event: any): void {
+    // Ensure drag state is maintained
+    if (!this.isDragging()) {
+      this.isDragging.set(true);
+    }
+    
+    // Update drag ghost position
     this.updateDragGhostPosition(event);
+    
+    // Ensure drag ghost remains visible
+    if (this.dragGhost) {
+      this.dragGhost.style.opacity = '0.9';
+      this.dragGhost.style.display = 'flex';
+    }
   }
 
   /**
@@ -89,6 +117,29 @@ export class DragDropService {
       }
     }
     
+    // Restore CDK preview visibility
+    setTimeout(() => {
+      const previewElements = document.querySelectorAll(SELECTORS.CDK_DRAG_PREVIEW);
+      previewElements.forEach(el => {
+        (el as HTMLElement).style.display = '';
+        (el as HTMLElement).style.visibility = '';
+        (el as HTMLElement).style.opacity = '';
+      });
+      
+      const placeholderElements = document.querySelectorAll('.cdk-drag-placeholder');
+      placeholderElements.forEach(el => {
+        (el as HTMLElement).style.display = '';
+        (el as HTMLElement).style.visibility = '';
+        (el as HTMLElement).style.opacity = '';
+        (el as HTMLElement).style.height = '';
+        (el as HTMLElement).style.width = '';
+        (el as HTMLElement).style.margin = '';
+        (el as HTMLElement).style.padding = '';
+        (el as HTMLElement).style.border = '';
+        (el as HTMLElement).style.background = '';
+      });
+    }, 50);
+    
     this.cleanupDragEffects();
   }
 
@@ -98,6 +149,12 @@ export class DragDropService {
   private createDragGhost(event: any): void {
     const draggedComponent = event.item?.data;
     if (!draggedComponent) return;
+
+    // Remove any existing ghost first
+    if (this.dragGhost) {
+      this.dragGhost.remove();
+      this.dragGhost = null;
+    }
 
     // Create mini plaque
     this.dragGhost = document.createElement('div');
@@ -118,6 +175,8 @@ export class DragDropService {
     this.dragGhost.style.fontWeight = '500';
     this.dragGhost.style.color = '#334155';
     this.dragGhost.style.whiteSpace = 'nowrap';
+    this.dragGhost.style.opacity = '0.9'; // Ensure it's visible
+    this.dragGhost.style.transition = 'opacity 0.2s ease'; // Smooth transition
     
     // Set content based on component type
     const { icon, label } = this.getComponentIconAndLabel(draggedComponent);
@@ -126,7 +185,14 @@ export class DragDropService {
       <span>${label}</span>
     `;
     
+    // Add to body
     document.body.appendChild(this.dragGhost);
+    
+    // Position ghost at initial mouse position if available
+    if (event.event?.clientX && event.event?.clientY) {
+      this.dragGhost.style.left = `${event.event.clientX + 10}px`;
+      this.dragGhost.style.top = `${event.event.clientY - 30}px`;
+    }
     
     // Create insertion strip
     this.createInsertionStrip();
@@ -178,22 +244,28 @@ export class DragDropService {
     setTimeout(() => {
       const previewElements = document.querySelectorAll(SELECTORS.CDK_DRAG_PREVIEW);
       previewElements.forEach(el => {
-        (el as HTMLElement).style.display = 'none';
-        (el as HTMLElement).style.visibility = 'hidden';
-        (el as HTMLElement).style.opacity = DEFAULT_VALUES.OPACITY_ZERO;
+        // Only hide if our custom ghost is visible
+        if (this.dragGhost && this.dragGhost.style.display === 'flex') {
+          (el as HTMLElement).style.display = 'none';
+          (el as HTMLElement).style.visibility = 'hidden';
+          (el as HTMLElement).style.opacity = DEFAULT_VALUES.OPACITY_ZERO;
+        }
       });
       
       const placeholderElements = document.querySelectorAll('.cdk-drag-placeholder');
       placeholderElements.forEach(el => {
-        (el as HTMLElement).style.display = 'none';
-        (el as HTMLElement).style.visibility = 'hidden';
-        (el as HTMLElement).style.opacity = '0';
-        (el as HTMLElement).style.height = '0';
-        (el as HTMLElement).style.width = '0';
-        (el as HTMLElement).style.margin = '0';
-        (el as HTMLElement).style.padding = '0';
-        (el as HTMLElement).style.border = 'none';
-        (el as HTMLElement).style.background = 'transparent';
+        // Only hide if our custom ghost is visible
+        if (this.dragGhost && this.dragGhost.style.display === 'flex') {
+          (el as HTMLElement).style.display = 'none';
+          (el as HTMLElement).style.visibility = 'hidden';
+          (el as HTMLElement).style.opacity = '0';
+          (el as HTMLElement).style.height = '0';
+          (el as HTMLElement).style.width = '0';
+          (el as HTMLElement).style.margin = '0';
+          (el as HTMLElement).style.padding = '0';
+          (el as HTMLElement).style.border = 'none';
+          (el as HTMLElement).style.background = 'transparent';
+        }
       });
     }, 0);
   }
@@ -209,8 +281,13 @@ export class DragDropService {
 
     // Update mini plaque position to follow cursor
     if (this.dragGhost) {
+      // Ensure the ghost stays visible and follows the cursor smoothly
       this.dragGhost.style.left = `${pointerEvent.clientX + 10}px`;
       this.dragGhost.style.top = `${pointerEvent.clientY - 30}px`;
+      
+      // Make sure it's visible
+      this.dragGhost.style.opacity = '0.9';
+      this.dragGhost.style.display = 'flex';
     }
 
     // Find target container and update blue insertion strip
@@ -370,14 +447,27 @@ export class DragDropService {
   private cleanupDragEffects(): void {
     // Remove drag ghost
     if (this.dragGhost) {
-      this.dragGhost.remove();
-      this.dragGhost = null;
+      // Fade out before removing
+      this.dragGhost.style.opacity = '0';
+      this.dragGhost.style.transition = 'opacity 0.2s ease';
+      
+      setTimeout(() => {
+        if (this.dragGhost) {
+          this.dragGhost.remove();
+          this.dragGhost = null;
+        }
+      }, 200);
     }
     
     // Remove insertion strip
     if (this.insertionStrip) {
-      this.insertionStrip.remove();
-      this.insertionStrip = null;
+      this.insertionStrip.style.display = 'none';
+      setTimeout(() => {
+        if (this.insertionStrip) {
+          this.insertionStrip.remove();
+          this.insertionStrip = null;
+        }
+      }, 100);
     }
     
     // Remove dragging classes
@@ -386,6 +476,10 @@ export class DragDropService {
       element.classList.remove(CSS_CLASSES.DRAGGING);
       (element as HTMLElement).style.opacity = '1';
     });
+    
+    // Clear any remaining drag state
+    this.currentDragComponent = null;
+    this.dragSource = DRAG_SOURCES.SIDEBAR;
   }
 
   // Public methods for compatibility with form-builder.service
@@ -416,6 +510,36 @@ export class DragDropService {
   public clearDropZones(): void {
     this.dropZones.set(new Map());
     this.hoverStates.set(new Map());
+  }
+
+  // New methods from test service
+  setDragData(data: DragData) {
+    this.dragDataSubject.next(data);
+  }
+
+  clearDragData() {
+    this.dragDataSubject.next(null);
+  }
+
+  setDropPosition(position: DropPosition | null) {
+    this.dropPositionSubject.next(position);
+  }
+
+  notifyDragEnd() {
+    this.dragEndSubject.next();
+  }
+
+  getCurrentDragData(): DragData | null {
+    return this.dragDataSubject.value;
+  }
+
+  // Additional methods to match the test DragStateService
+  isOverValidTarget(): boolean {
+    return this.isCanvasHovered() || this.dropZones().size > 0;
+  }
+
+  getDragData(): DragData | null {
+    return this.getCurrentDragData();
   }
 }
 

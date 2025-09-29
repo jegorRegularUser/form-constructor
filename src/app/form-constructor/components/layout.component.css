@@ -1,44 +1,44 @@
-.test-layout {
+.layout {
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.test-layout h1 {
+.layout h1 {
   text-align: center;
   color: #333;
   margin-bottom: 20px;
 }
 
-.test-container {
+.container {
   display: flex;
   flex: 1;
   height: calc(100vh - 80px);
 }
 
-.test-sidebar-container {
+.sidebar-container {
   width: 250px;
   border-right: 1px solid #ddd;
 }
 
-.test-editor-container {
+.editor-container {
   flex: 1;
   padding: 0 20px;
 }
 
 @media (max-width: 768px) {
-  .test-container {
+  .container {
     flex-direction: column;
   }
   
-  .test-sidebar-container {
+  .sidebar-container {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #ddd;
     height: 200px;
   }
   
-  .test-editor-container {
+  .editor-container {
     padding: 20px 0;
   }
 }
