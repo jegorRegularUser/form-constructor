@@ -1,0 +1,68 @@
+<app-base-form-block
+  [id]="id"
+  [isDragged]="isDragged"
+  [isSelected]="isSelected"
+  [layout]="layout"
+  [label]="label"
+  [isEditingLabel]="isEditingLabel"
+  [required]="required"
+  [showRequiredToggle]="true"
+  (dragHandleMouseDown)="onDragHandleMouseDown($event)"
+  (elementClick)="elementClick.emit($event)"
+  (labelEditStart)="startLabelEdit()"
+  (labelEditEnd)="finishLabelEdit($event)"
+  (labelEditCancel)="cancelLabelEdit()"
+  (deleteElement)="deleteElement.emit($event)"
+  (duplicateElement)="duplicateElement.emit($event)"
+  (toggleRequired)="toggleRequired.emit($event)"
+  (openSettings)="openSettings.emit($event)">
+  
+  <div class="textarea-wrapper">
+    <!-- Display mode for label -->
+    <label
+      *ngIf="label && !isEditingLabel"
+      class="textarea-label"
+      (click)="startLabelEdit()"
+      [class.required]="required"
+    >
+      {{ label }}
+    </label>
+    
+    <!-- Edit mode for label -->
+    <input
+      *ngIf="isEditingLabel"
+      type="text"
+      class="label-edit-input"
+      [value]="label"
+      (blur)="handleLabelBlur($event)"
+      (keydown)="handleLabelKeyDown($event)"
+      (click)="$event.stopPropagation()"
+      [attr.minlength]="labelMinLength"
+      [attr.maxlength]="labelMaxLength"
+      [required]="labelRequired"
+      autofocus
+    />
+    
+    <textarea
+      nz-input
+      [(ngModel)]="value"
+      [placeholder]="placeholder"
+      [nzAutosize]="{ minRows: rows || 3, maxRows: maxRows || 6 }"
+      [disabled]="disabled"
+      [readOnly]="readOnly"
+      [required]="required"
+      [nzStatus]="validationStatus"
+      (ngModelChange)="onValueChange($event)"
+      (blur)="onBlur()"
+      class="textarea-field"
+    ></textarea>
+    <div *ngIf="showCount" class="char-counter">
+      {{ value?.length || 0 }}{{ maxLength ? '/' + maxLength : '' }}
+    </div>
+    
+    <!-- Validation error message -->
+    <div *ngIf="validationStatus === 'error'" class="validation-error">
+      {{ getValidationErrorMessage() }}
+    </div>
+  </div>
+</app-base-form-block>

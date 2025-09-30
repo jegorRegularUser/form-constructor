@@ -267,7 +267,6 @@
 
 /* ===== PROPERTY PANEL ===== */
 .property-panel {
-  padding: var(--space-4);
   max-height: 100%;
   overflow-y: auto;
 }

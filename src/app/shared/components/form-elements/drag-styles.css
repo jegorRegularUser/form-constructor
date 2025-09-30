@@ -31,6 +31,12 @@
   pointer-events: none;
 }
 
+:host(.selected) {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
 :host(.drop-preview) {
   border: 2px dashed #40a9ff;
   background: rgba(24, 144, 255, 0.06);

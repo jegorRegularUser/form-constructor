@@ -1,0 +1,19 @@
+<div class="layout">
+  <div class="container">
+    <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
+      <app-sidebar [collapsed]="isSidebarCollapsed" (toggle)="handleSidebarToggle()"></app-sidebar>
+      <button class="toggle-button sidebar-toggle" (click)="toggleSidebar()">
+        <span nz-icon [nzType]="isSidebarCollapsed ? 'right' : 'left'"></span>
+      </button>
+    </div>
+    <div class="editor-container" [class.sidebar-collapsed]="isSidebarCollapsed" [class.property-panel-collapsed]="isPropertyPanelCollapsed">
+      <app-editor [sidebarCollapsed]="isSidebarCollapsed" [propertyPanelCollapsed]="isPropertyPanelCollapsed"></app-editor>
+    </div>
+    <div class="property-panel-container" [class.collapsed]="isPropertyPanelCollapsed" [class.hidden]="!isPropertyPanelVisible">
+      <app-property-panel [collapsed]="isPropertyPanelCollapsed" (toggle)="handlePropertyPanelToggle()"></app-property-panel>
+      <button class="toggle-button property-panel-toggle" (click)="togglePropertyPanel()">
+        <span nz-icon [nzType]="isPropertyPanelCollapsed ? 'left' : 'right'"></span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h3>Components</h3>
+    <button class="sidebar-toggle-button" (click)="toggle.emit()" nz-tooltip nzTooltipTitle="Toggle sidebar">
+      <span nz-icon [nzType]="collapsed ? 'right' : 'left'"></span>
+    </button>
+  </div>
+  
+  <nz-collapse>
+    <nz-collapse-panel
+      *ngFor="let category of elementCategories"
+      [nzHeader]="category.displayName"
+      [nzActive]="category.expanded">
+      <div
+        *ngFor="let element of category.elements"
+        class="draggable-item"
+        [class.dragging]="isDragging && currentDragType === element.type"
+        (mousedown)="onDragStart($event, element.type)">
+        <span nz-icon [nzType]="element.icon" class="element-icon"></span>
+        <span class="element-name">{{ element.displayName }}</span>
+      </div>
+    </nz-collapse-panel>
+  </nz-collapse>
+</div>

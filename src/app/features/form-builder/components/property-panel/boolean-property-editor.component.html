@@ -1,0 +1,5 @@
+<nz-switch 
+  [(ngModel)]="currentValue" 
+  (ngModelChange)="onValueChange($event)"
+  [nzDisabled]="property.disabled || false"
+/>

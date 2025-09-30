@@ -1,59 +1,108 @@
-# FormConstructor
+# Form Constructor
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.17.
+A powerful drag-and-drop form builder built with Angular 19 and Ng-Zorro UI components.
 
-## Development server
+## Features
 
-To start a local development server, run:
+### ✅ Implemented
+- **Drag & Drop Interface**: Intuitive form building with visual drop indicators
+- **Form Elements**: Input, Textarea, Select, Button components
+- **Element Management**: Add, remove, duplicate, and move elements
+- **Inline Label Editing**: Click on labels to edit them directly
+- **Element Actions**: Delete, duplicate, toggle required, and settings buttons
+- **Property Panel**: Configure element properties with real-time updates
+- **Form State Management**: Automatic save/restore with localStorage
+- **Responsive Layout**: Collapsible sidebar and property panel
+- **Visual Feedback**: Element selection, hover states, and drag indicators
 
+### 🔧 Element Types
+- **Input**: Text inputs with customizable properties
+- **Textarea**: Multi-line text areas with row configuration
+- **Select**: Dropdown selections with options
+- **Button**: Action buttons with different types
+
+### 💾 Data Persistence
+- Automatic state saving to localStorage
+- Form structure and element positions
+- Element properties and configurations
+- Form-level settings
+- Export/Import functionality
+
+## Development
+
+### Prerequisites
+- Node.js (v18+)
+- Angular CLI (v19.2.17)
+
+### Installation
+```bash
+npm install
+```
+
+### Development Server
 ```bash
 ng serve
 ```
+Navigate to `http://localhost:4200/`
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
+### Build
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Architecture
 
-## Running unit tests
+### Core Services
+- **ElementStateService**: Manages form state and persistence
+- **DragStateService**: Handles drag-and-drop operations
+- **ElementSelectionService**: Manages element selection
+- **PropertyPanelService**: Handles property configurations
+- **FormService**: Form validation and submission
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+### Component Structure
+```
+src/app/
+├── core/                    # Core services and models
+│   ├── services/           # State management services
+│   ├── models/            # Data models and interfaces
+│   └── factories/         # Element creation factories
+├── features/
+│   └── form-builder/      # Main form builder feature
+│       ├── components/
+│       │   ├── editor/    # Form editor with drag-drop
+│       │   ├── sidebar/   # Element palette
+│       │   └── property-panel/ # Property configuration
+├── shared/
+│   └── components/
+│       └── form-elements/ # Reusable form components
+└── layouts/               # Application layouts
 ```
 
-## Running end-to-end tests
+### Key Features Implementation
 
-For end-to-end (e2e) testing, run:
+#### Drag & Drop System
+- Visual drop indicators (horizontal/vertical)
+- Smart positioning logic
+- Element reordering and row management
+- Empty form state handling
 
-```bash
-ng e2e
-```
+#### Element Management
+- Unique ID generation
+- Property synchronization
+- State persistence
+- Real-time updates
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+#### Property Panel
+- Dynamic property editors
+- Type-specific configurations
+- Form-level settings
+- Validation rules
 
-## Additional Resources
+## Usage
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. **Add Elements**: Drag elements from the sidebar to the form editor
+2. **Configure Properties**: Select elements to edit properties in the right panel
+3. **Edit Labels**: Click on element labels to edit them inline
+4. **Manage Elements**: Use action buttons (delete, duplicate, required, settings)
+5. **Save/Load**: Forms are automatically saved and restored
+

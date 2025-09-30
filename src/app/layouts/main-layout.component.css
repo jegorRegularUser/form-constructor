@@ -1,0 +1,181 @@
+.layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+h1 {
+  margin: 0;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  color: #495057;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.sidebar-container {
+  flex-shrink: 0;
+  width: 200px;
+  border-right: 1px solid #dee2e6;
+  position: relative;
+  transition: width 0.3s ease;
+}
+
+.sidebar-container.collapsed {
+  width: 40px;
+  overflow: hidden;
+}
+
+.editor-container {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+  transition: margin-right 0.3s ease, margin-left 0.3s ease;
+}
+
+.editor-container.expanded {
+  margin-right: 0;
+}
+
+.editor-container.sidebar-collapsed {
+  margin-left: 0;
+}
+
+.editor-container.property-panel-collapsed {
+  margin-right: 0;
+}
+
+.property-panel-container {
+  flex-shrink: 0;
+  width: 300px;
+  border-left: 1px solid #f0f0f0;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.property-panel-container.collapsed {
+  width: 40px;
+}
+
+.property-panel-container.hidden {
+  width: 0;
+  border-left: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-container {
+    width: 150px;
+  }
+  
+  .property-panel-container {
+    width: 250px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .property-panel-container {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .sidebar-container {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .property-panel-container {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+  }
+  
+  .editor-container {
+    padding: 12px;
+  }
+}
+
+/* Scrollbar styling for better visual consistency */
+.editor-container::-webkit-scrollbar,
+.property-panel-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.editor-container::-webkit-scrollbar-track,
+.property-panel-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.editor-container::-webkit-scrollbar-thumb,
+.property-panel-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.editor-container::-webkit-scrollbar-thumb:hover,
+.property-panel-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Toggle button styles */
+.toggle-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.toggle-button:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.toggle-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.sidebar-toggle {
+  right: -12px;
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.property-panel-toggle {
+  left: -12px;
+  border-radius: 4px 0 0 4px;
+  border-right: none;
+}
+
+/* Ensure icons in toggle buttons are properly styled */
+.toggle-button span {
+  font-size: 12px;
+  color: #495057;
+}

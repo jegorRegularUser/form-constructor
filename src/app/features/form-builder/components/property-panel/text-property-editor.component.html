@@ -1,0 +1,8 @@
+<input 
+  nz-input 
+  [(ngModel)]="currentValue" 
+  [placeholder]="property.placeholder || ''"
+  [nzSize]="'small'"
+  (ngModelChange)="onValueChange($event)"
+  [disabled]="property.disabled || false"
+/>

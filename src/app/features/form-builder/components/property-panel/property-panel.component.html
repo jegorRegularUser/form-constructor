@@ -1,0 +1,353 @@
+<div class="property-panel">
+  <div class="property-panel-header">
+    <h3>Properties</h3>
+    <button class="property-panel-toggle-button" (click)="toggle.emit()" nz-tooltip nzTooltipTitle="Toggle property panel">
+      <span nz-icon [nzType]="collapsed ? 'left' : 'right'"></span>
+    </button>
+  </div>
+  <nz-card>
+    <nz-tabset>
+      <nz-tab nzTitle="Properties">
+        <div *ngIf="selectedElement" class="properties-container">
+          <div class="property-group" *ngFor="let group of elementPropertyGroups">
+            <div class="property-group-title">{{ group.title }}</div>
+            <div class="property-items">
+              <div class="property-item" *ngFor="let property of group.properties">
+                <div class="property-label">{{ property.label }}</div>
+                <div class="property-editor">
+                  <!-- Text Property Editor -->
+                  <input
+                    *ngIf="property.type === 'text'"
+                    nz-input
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [placeholder]="property.placeholder"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [disabled]="property.disabled || false"
+                  />
+                   
+                  <!-- Number Property Editor -->
+                  <nz-input-number
+                    *ngIf="property.type === 'number'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [nzMin]="property.min"
+                    [nzMax]="property.max"
+                    [nzStep]="property.step || 1"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                  />
+                   
+                  <!-- Boolean Property Editor -->
+                  <nz-switch
+                    *ngIf="property.type === 'boolean'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                  />
+                   
+                  <!-- Select Property Editor -->
+                  <nz-select
+                    *ngIf="property.type === 'select'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                    [nzPlaceHolder]="property.placeholder || 'Select an option'">
+                    <nz-option
+                      *ngFor="let option of property.options"
+                      [nzLabel]="option.label"
+                      [nzValue]="option.value">
+                    </nz-option>
+                  </nz-select>
+                  
+                  <!-- Placeholder Style Property Editor -->
+                  <div *ngIf="property.type === 'placeholder-style'" class="placeholder-style-editor">
+                    <nz-collapse>
+                      <nz-collapse-panel [nzHeader]="'Placeholder Style'" [nzActive]="false">
+                        <div class="placeholder-style-properties">
+                          <div class="placeholder-style-property" *ngFor="let styleProp of property.placeholderStyleProperties">
+                            <div class="property-label">{{ styleProp.label }}</div>
+                            <div class="property-editor">
+                              <!-- Text Property Editor -->
+                              <input
+                                *ngIf="styleProp.type === 'text'"
+                                nz-input
+                                [ngModel]="getPlaceholderStyleProperty(property.name, styleProp.name)"
+                                [placeholder]="styleProp.placeholder"
+                                [nzSize]="'small'"
+                                (ngModelChange)="onPlaceholderStylePropertyChange(property.name, styleProp.name, $event)"
+                                [disabled]="property.disabled || false"
+                              />
+                              
+                              <!-- Color Property Editor -->
+                              <app-color-property-editor
+                                *ngIf="styleProp.type === 'color'"
+                                [ngModel]="getPlaceholderStyleProperty(property.name, styleProp.name)"
+                                (ngModelChange)="onPlaceholderStylePropertyChange(property.name, styleProp.name, $event)"
+                                [placeholder]="styleProp.placeholder"
+                                [disabled]="property.disabled || false"
+                              />
+                              
+                              <!-- Select Property Editor -->
+                              <nz-select
+                                *ngIf="styleProp.type === 'select'"
+                                [ngModel]="getPlaceholderStyleProperty(property.name, styleProp.name)"
+                                [nzSize]="'small'"
+                                (ngModelChange)="onPlaceholderStylePropertyChange(property.name, styleProp.name, $event)"
+                                [nzDisabled]="property.disabled"
+                                [nzPlaceHolder]="styleProp.placeholder || 'Select an option'">
+                                <nz-option
+                                  *ngFor="let option of styleProp.options"
+                                  [nzLabel]="option.label"
+                                  [nzValue]="option.value">
+                                </nz-option>
+                              </nz-select>
+                              
+                              <!-- Font Weight Property Editor -->
+                              <nz-select
+                                *ngIf="styleProp.type === 'font-weight'"
+                                [ngModel]="getPlaceholderStyleProperty(property.name, styleProp.name)"
+                                (ngModelChange)="onPlaceholderStylePropertyChange(property.name, styleProp.name, $event)"
+                                [nzSize]="'small'"
+                                [nzDisabled]="property.disabled"
+                                [nzPlaceHolder]="styleProp.placeholder || 'Select font weight'">
+                                <nz-option
+                                  *ngFor="let option of styleProp.options"
+                                  [nzLabel]="option.label"
+                                  [nzValue]="option.value">
+                                </nz-option>
+                              </nz-select>
+                            </div>
+                          </div>
+                        </div>
+                      </nz-collapse-panel>
+                    </nz-collapse>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!selectedElement" class="no-selection">
+          No element selected
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Layout">
+        <div *ngIf="selectedElement" class="properties-container">
+          <div class="property-group" *ngFor="let group of layoutPropertyGroups">
+            <div class="property-group-title">{{ group.title }}</div>
+            <div class="property-items">
+              <div class="property-item" *ngFor="let property of group.properties">
+                <div class="property-label">{{ property.label }}</div>
+                <div class="property-editor">
+                  <!-- Text Property Editor -->
+                  <input
+                    *ngIf="property.type === 'text'"
+                    nz-input
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [placeholder]="property.placeholder"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [disabled]="property.disabled || false"
+                  />
+                  
+                  <!-- Color Property Editor -->
+                  <app-color-property-editor
+                    *ngIf="property.type === 'color'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [placeholder]="property.placeholder"
+                    [disabled]="property.disabled || false"
+                  />
+                  
+                  <!-- Color Property Editor -->
+                  <app-color-property-editor
+                    *ngIf="property.type === 'color'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [placeholder]="property.placeholder"
+                    [disabled]="property.disabled || false"
+                  />
+                  
+                  <!-- Number Property Editor -->
+                  <nz-input-number
+                    *ngIf="property.type === 'number'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [nzMin]="property.min"
+                    [nzMax]="property.max"
+                    [nzStep]="property.step || 1"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                  />
+                  
+                  <!-- Boolean Property Editor -->
+                  <nz-switch
+                    *ngIf="property.type === 'boolean'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                  />
+                  
+                  <!-- Select Property Editor -->
+                  <nz-select
+                    *ngIf="property.type === 'select'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    [nzSize]="'small'"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzDisabled]="property.disabled"
+                    [nzPlaceHolder]="property.placeholder || 'Select an option'">
+                    <nz-option
+                      *ngFor="let option of property.options"
+                      [nzLabel]="option.label"
+                      [nzValue]="option.value">
+                    </nz-option>
+                  </nz-select>
+                  
+                  <!-- Font Weight Property Editor -->
+                  <nz-select
+                    *ngIf="property.type === 'font-weight'"
+                    [ngModel]="getElementPropertyValue(property.name)"
+                    (ngModelChange)="onPropertyChange(property.name, $event)"
+                    [nzSize]="'small'"
+                    [nzDisabled]="property.disabled"
+                    [nzPlaceHolder]="property.placeholder || 'Select font weight'">
+                    <nz-option
+                      *ngFor="let option of property.options"
+                      [nzLabel]="option.label"
+                      [nzValue]="option.value">
+                    </nz-option>
+                  </nz-select>
+                  
+                  <!-- Dimension Property Editor -->
+                  <div *ngIf="property.type === 'dimension'" class="dimension-editor">
+                    <nz-input-number
+                      [ngModel]="getElementPropertyValue(property.name)?.value || 0"
+                      [nzMin]="property.min"
+                      [nzMax]="property.max"
+                      [nzStep]="property.step || 1"
+                      [nzSize]="'small'"
+                      (ngModelChange)="onDimensionValueChange(property.name, $event)"
+                      [nzDisabled]="property.disabled"
+                    />
+                    <nz-select
+                      [ngModel]="getElementPropertyValue(property.name)?.unit || property.defaultUnit || 'px'"
+                      (ngModelChange)="onDimensionUnitChange(property.name, $event)"
+                      [nzSize]="'small'"
+                      [nzDisabled]="property.disabled">
+                      <nz-option
+                        *ngFor="let unit of property.dimensionUnits || ['px', '%', 'em', 'rem']"
+                        [nzLabel]="unit"
+                        [nzValue]="unit">
+                      </nz-option>
+                    </nz-select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!selectedElement" class="no-selection">
+          No element selected
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Form Settings">
+        <div class="property-group" *ngFor="let group of formPropertyGroups">
+          <div class="property-group-title">{{ group.title }}</div>
+          <div class="property-items">
+            <div class="property-item" *ngFor="let property of group.properties">
+              <div class="property-label">{{ property.label }}</div>
+              <div class="property-editor">
+                <!-- Text Property Editor -->
+                <input 
+                  *ngIf="property.type === 'text'"
+                  nz-input 
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [placeholder]="property.placeholder"
+                  [nzSize]="'small'"
+                  [disabled]="property.disabled || false"
+                />
+                
+                <!-- Number Property Editor -->
+                <nz-input-number 
+                  *ngIf="property.type === 'number'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [nzMin]="property.min"
+                  [nzMax]="property.max"
+                  [nzStep]="property.step || 1"
+                  [nzSize]="'small'"
+                  [nzDisabled]="property.disabled"
+                />
+                
+                <!-- Boolean Property Editor -->
+                <nz-switch 
+                  *ngIf="property.type === 'boolean'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [nzDisabled]="property.disabled"
+                />
+                
+                <!-- Select Property Editor -->
+                <nz-select
+                  *ngIf="property.type === 'select'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [nzSize]="'small'"
+                  [nzDisabled]="property.disabled"
+                  [nzPlaceHolder]="property.placeholder || 'Select an option'">
+                  <nz-option
+                    *ngFor="let option of property.options"
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value">
+                  </nz-option>
+                </nz-select>
+                
+                <!-- Font Weight Property Editor -->
+                <nz-select
+                  *ngIf="property.type === 'font-weight'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [nzSize]="'small'"
+                  [nzDisabled]="property.disabled"
+                  [nzPlaceHolder]="property.placeholder || 'Select font weight'">
+                  <nz-option
+                    *ngFor="let option of property.options"
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value">
+                  </nz-option>
+                </nz-select>
+                
+                <!-- Color Property Editor -->
+                <app-color-property-editor
+                  *ngIf="property.type === 'color'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [placeholder]="property.placeholder"
+                  [disabled]="property.disabled || false"
+                />
+                
+                <!-- Border Style Property Editor -->
+                <nz-select
+                  *ngIf="property.type === 'border-style'"
+                  [ngModel]="getFormPropertyValue(property.name)"
+                  (ngModelChange)="onFormPropertyChange(property.name, $event)"
+                  [nzSize]="'small'"
+                  [nzDisabled]="property.disabled"
+                  [nzPlaceHolder]="property.placeholder || 'Select border style'">
+                  <nz-option
+                    *ngFor="let option of property.options"
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value">
+                  </nz-option>
+                </nz-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nz-tab>
+    </nz-tabset>
+  </nz-card>
+</div>

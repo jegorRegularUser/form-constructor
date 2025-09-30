@@ -1,0 +1,35 @@
+<app-base-form-block
+  [id]="id"
+  [isDragged]="isDragged"
+  [isSelected]="isSelected"
+  [layout]="layout"
+  [required]="false"
+  [showRequiredToggle]="false"
+  (dragHandleMouseDown)="onDragHandleMouseDown($event)"
+  (elementClick)="elementClick.emit($event)"
+  (deleteElement)="deleteElement.emit($event)"
+  (duplicateElement)="duplicateElement.emit($event)">
+  
+  <div class="button-wrapper">
+    <button
+      nz-button
+      [type]="htmlButtonType"
+      [nzType]="buttonType"
+      [nzSize]="size"
+      [nzShape]="shape || null"
+      [nzLoading]="loading"
+      [nzBlock]="block"
+      [nzGhost]="ghost"
+      [nzDanger]="danger"
+      [disabled]="disabled"
+      (click)="onClick($event)"
+      class="button-field">
+      <span *ngIf="icon" nz-icon [nzType]="icon"></span>
+      {{ text }}
+    </button>
+    
+    <div *ngIf="description" class="button-description">
+      {{ description }}
+    </div>
+  </div>
+</app-base-form-block>

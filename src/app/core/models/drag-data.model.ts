@@ -2,12 +2,19 @@
 export interface BaseEditorElement {
   id: string;
   type: string;
+  customProperties?: Record<string, any>;
 }
 
 // Конкретные типы элементов
 export interface InputElement extends BaseEditorElement {
   type: 'input';
   value: string;
+  placeholder?: string;
+  label?: string;
+  required?: boolean;
+  readOnly?: boolean;
+  disabled?: boolean;
+  [key: string]: any;
 }
 
 export interface TextareaElement extends BaseEditorElement {
@@ -15,18 +22,40 @@ export interface TextareaElement extends BaseEditorElement {
   value: string;
   rows?: number;
   placeholder?: string;
+  label?: string;
+  required?: boolean;
+  readOnly?: boolean;
+  disabled?: boolean;
+  [key: string]: any;
+}
+
+export interface SelectElement extends BaseEditorElement {
+  type: 'select';
+  value: string | string[];
+  options?: any[];
+  multiple?: boolean;
+  placeholder?: string;
+  label?: string;
+  required?: boolean;
+  disabled?: boolean;
+  [key: string]: any;
 }
 
 // Объединенный тип для всех возможных элементов
-export type EditorElement = InputElement | TextareaElement;
+export type EditorElement = InputElement | TextareaElement | SelectElement | (BaseEditorElement & { [key: string]: any });
+
+// Import new property types
+export type { FormElementProperties } from './element-properties.model';
+export type { FormProperties } from './form-properties.model';
 
 // Обновленный DragData для поддержки разных типов
 export interface DragData {
-  type: 'input' | 'textarea' | 'existing';
+  type: 'input' | 'textarea' | 'select' | 'button' | 'existing' | 'element';
   elementType?: string; // Конкретный тип элемента при создании нового
   id?: string;
   rowIndex?: number;
   colIndex?: number;
+  elementDefinition?: any; // Definition of the element being dragged
 }
 
 export interface DropPosition {
