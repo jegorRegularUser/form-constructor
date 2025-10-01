@@ -1,0 +1,170 @@
+/* Base Form Block Component Styles */
+
+.form-block-wrapper {
+  position: relative;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  border: 1px solid transparent;
+  /* Default to auto-expand (full width) */
+  width: 100%;
+}
+
+.form-block-content {
+  position: relative;
+  width: 100%;
+  min-height: 32px;
+}
+
+/* When auto-expand is disabled, respect the specified width */
+.form-block-wrapper:not(.auto-expand) {
+  width: auto;
+}
+
+/* Selected state */
+.form-block-wrapper.selected {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+  background-color: rgba(24, 144, 255, 0.05);
+  border-color: #1890ff;
+}
+
+/* Hover state */
+.form-block-wrapper:hover:not(.selected):not(.dragged) {
+  outline: 1px dashed #d9d9d9;
+  outline-offset: 2px;
+}
+
+/* Dragged state */
+.form-block-wrapper.dragged {
+  opacity: 0.5;
+  cursor: grabbing;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Disabled state */
+.form-block-wrapper.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Focus state for accessibility */
+.form-block-wrapper:focus-within {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Animation for selection changes */
+.form-block-wrapper {
+  transition: outline 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Ensure form elements are properly contained */
+.form-block-wrapper > * {
+  pointer-events: auto;
+}
+
+/* Make sure the drag handle is clickable */
+.form-block-wrapper .drag-handle {
+  pointer-events: auto;
+  z-index: 10;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-block-wrapper {
+    margin: 2px;
+    padding: 6px;
+  }
+}
+
+/* Action buttons container */
+.element-actions {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* Show action buttons on hover or when selected */
+.form-block-wrapper:hover .element-actions,
+.form-block-wrapper.selected .element-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Action button styles */
+.action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  color: rgba(0, 0, 0, 0.45);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.action-button:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.05);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+}
+
+.action-button.delete-button:hover {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+  background-color: rgba(255, 77, 79, 0.05);
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.2);
+}
+
+.action-button.required-button.active {
+  color: #52c41a;
+  border-color: #52c41a;
+  background-color: rgba(82, 196, 26, 0.05);
+}
+
+.action-button.required-button:hover.active {
+  color: #73d13d;
+  border-color: #73d13d;
+  background-color: rgba(115, 209, 61, 0.1);
+  box-shadow: 0 2px 4px rgba(115, 209, 61, 0.2);
+}
+
+/* Icon styling */
+.action-button span[nz-icon] {
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure buttons are always visible when they should be */
+.form-block-wrapper:hover .element-actions,
+.form-block-wrapper.selected .element-actions {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure action buttons have proper stacking context */
+.action-button {
+  position: relative;
+  pointer-events: auto;
+}

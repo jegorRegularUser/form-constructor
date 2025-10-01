@@ -1,0 +1,138 @@
+.editor {
+  flex: 1;
+  background: transparent;
+  border: 2px dashed #e9ecef;
+  border-radius: 8px;
+  min-height: 400px;
+  position: relative;
+  overflow: auto;
+  padding: 8px;
+  transition: all 0.3s ease;
+}
+
+.editor-content {
+  min-height: 100%;
+  position: relative;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+
+.element-row {
+  display: flex;
+  margin-bottom: 8px;
+  position: relative;
+  min-height: 50px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.drop-indicator {
+  position: absolute;
+  background: #2196f3;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 1000;
+  transition: all 0.1s ease;
+  box-shadow: 0 0 0 1px rgba(33, 150, 243, 0.3);
+}
+
+.drop-indicator.horizontal {
+  height: 3px;
+  margin-top: -1.5px;
+}
+
+.drop-indicator.vertical {
+  width: 3px;
+  margin-left: -1.5px;
+}
+
+.drop-indicator::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+}
+
+/* Selected element styles */
+::ng-deep .form-block-wrapper.selected {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::ng-deep .form-block-wrapper.selected .drag-handle {
+  opacity: 1 !important;
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+::ng-deep .form-block-wrapper.selected .drag-handle .dot {
+  background: #fff;
+}
+
+/* Element hover effects */
+::ng-deep .form-block-wrapper:hover {
+  outline: 1px dashed #d9d9d9;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::ng-deep .form-block-wrapper:hover .drag-handle {
+  opacity: 1 !important;
+}
+
+::ng-deep .form-block-wrapper:hover .element-actions {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+::ng-deep .form-block-wrapper.selected .element-actions {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Dragged element styles */
+::ng-deep .form-block-wrapper.dragged {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* Animation for drop indicator */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.drop-indicator {
+  animation: pulse 1.5s infinite;
+}
+
+/* Styles for when sidebar is collapsed */
+.sidebar-collapsed .editor {
+  margin-left: 0;
+}
+
+/* Styles for when property panel is collapsed */
+.property-panel-collapsed .editor {
+  margin-right: 0;
+}

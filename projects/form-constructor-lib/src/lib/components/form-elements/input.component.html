@@ -1,0 +1,65 @@
+<app-base-form-block
+  [id]="id"
+  [isDragged]="isDragged"
+  [isSelected]="isSelected"
+  [layout]="layout"
+  [label]="label"
+  [isEditingLabel]="isEditingLabel"
+  [required]="required"
+  [showRequiredToggle]="true"
+  (dragHandleMouseDown)="onDragHandleMouseDown($event)"
+  (elementClick)="elementClick.emit($event)"
+  (labelEditStart)="startLabelEdit()"
+  (labelEditEnd)="finishLabelEdit($event)"
+  (labelEditCancel)="cancelLabelEdit()"
+  (deleteElement)="deleteElement.emit($event)"
+  (duplicateElement)="duplicateElement.emit($event)"
+  (toggleRequired)="toggleRequired.emit($event)"
+  (openSettings)="openSettings.emit($event)">
+  
+  <div class="input-wrapper">
+    <!-- Display mode for label -->
+    <label
+      *ngIf="label && !isEditingLabel"
+      class="input-label"
+      (click)="startLabelEdit()"
+      [class.required]="required"
+    >
+      {{ label }}
+    </label>
+    
+    <!-- Edit mode for label -->
+    <input
+      *ngIf="isEditingLabel"
+      type="text"
+      class="label-edit-input"
+      [value]="label"
+      (blur)="handleLabelBlur($event)"
+      (keydown)="handleLabelKeyDown($event)"
+      (click)="$event.stopPropagation()"
+      [attr.minlength]="labelMinLength"
+      [attr.maxlength]="labelMaxLength"
+      [required]="labelRequired"
+      autofocus
+    />
+    
+    <input
+      nz-input
+      [(ngModel)]="value"
+      [placeholder]="placeholder"
+      [nzSize]="'default'"
+      [disabled]="disabled"
+      [readOnly]="readOnly"
+      [required]="required"
+      [nzStatus]="validationStatus"
+      (ngModelChange)="onValueChange($event)"
+      (blur)="onBlur()"
+      class="input-field"
+    />
+    
+    <!-- Validation error message -->
+    <div *ngIf="validationStatus === 'error'" class="validation-error">
+      {{ getValidationErrorMessage() }}
+    </div>
+  </div>
+</app-base-form-block>

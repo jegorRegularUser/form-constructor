@@ -1,0 +1,30 @@
+{
+  "name": "form-constructor-lib",
+  "version": "0.0.1",
+  "description": "A dynamic form constructor library for Angular applications",
+  "author": "Coreesoft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coreesoft/form-constructor"
+  },
+  "keywords": [
+    "angular",
+    "forms",
+    "dynamic-forms",
+    "form-builder",
+    "form-constructor"
+  ],
+  "peerDependencies": {
+    "@angular/common": "^19.2.0",
+    "@angular/core": "^19.2.0",
+    "@angular/forms": "^19.2.0",
+    "@angular/cdk": "^19.0.0",
+    "ng-zorro-antd": "^19.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,58 @@
+/* Base styles for form blocks with drag functionality - NG-ZORRO style */
+:host {
+  display: block;
+  min-width: 120px;
+  min-height: 32px;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 4px 11px;
+  margin: 4px;
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  flex: 1;
+  position: relative;
+  cursor: default;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.016);
+}
+
+:host:hover {
+  border-color: #40a9ff;
+}
+
+:host:focus-within {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  outline: 0;
+}
+
+:host(.dragged) {
+  opacity: 0.3 !important;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+:host(.selected) {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+:host(.drop-preview) {
+  border: 2px dashed #40a9ff;
+  background: rgba(24, 144, 255, 0.06);
+}
+
+/* Show drag handle when hovering over the component */
+:host:hover app-drag-handle .drag-handle,
+:host:hover .drag-handle {
+  opacity: 1;
+}
+
+/* Content container styles */
+.form-block-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}

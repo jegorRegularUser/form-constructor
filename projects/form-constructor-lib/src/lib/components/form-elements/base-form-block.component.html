@@ -1,0 +1,49 @@
+<div class="form-block-content">
+  <app-drag-handle (mouseDown)="onDragHandleMouseDown($event)"></app-drag-handle>
+  <ng-content></ng-content>
+</div>
+
+<!-- Action buttons -->
+<div class="element-actions">
+  <button
+    class="action-button delete-button"
+    nz-button
+    nzType="default"
+    nzSize="small"
+    nz-tooltip="Delete element"
+    (click)="onDeleteElement($event)">
+    <span nz-icon nzType="delete" nzTheme="outline"></span>
+  </button>
+  
+  <button
+    class="action-button duplicate-button"
+    nz-button
+    nzType="default"
+    nzSize="small"
+    nz-tooltip="Duplicate element"
+    (click)="onDuplicateElement($event)">
+    <span nz-icon nzType="copy" nzTheme="outline"></span>
+  </button>
+  
+  <button
+    *ngIf="showRequiredToggle"
+    class="action-button required-button"
+    [class.active]="required"
+    nz-button
+    nzType="default"
+    nzSize="small"
+    nz-tooltip="{{required ? 'Field is required' : 'Make field required'}}"
+    (click)="onToggleRequired($event)">
+    <span nz-icon [nzType]="required ? 'check-circle' : 'check-circle'" [nzTheme]="required ? 'fill' : 'outline'"></span>
+  </button>
+  
+  <button
+    class="action-button settings-button"
+    nz-button
+    nzType="default"
+    nzSize="small"
+    nz-tooltip="Element settings"
+    (click)="onOpenSettings($event)">
+    <span nz-icon nzType="setting" nzTheme="outline"></span>
+  </button>
+</div>
