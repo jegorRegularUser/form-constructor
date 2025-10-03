@@ -1,4 +1,10 @@
 <div class="layout">
+  <div class="header">
+    <button nz-button nzType="primary" nzDanger (click)="clearForm()">
+      <span nz-icon nzType="delete"></span>
+      Clear Form
+    </button>
+  </div>
   <div class="container">
     <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
       <app-sidebar [collapsed]="isSidebarCollapsed" (toggle)="handleSidebarToggle()"></app-sidebar>

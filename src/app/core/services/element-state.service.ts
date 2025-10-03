@@ -172,14 +172,7 @@ export class ElementStateService {
     
     const newElements = [...currentState.elements];
     
-    // If elements array is empty, initialize with empty arrays up to rowIndex
-    if (newElements.length === 0) {
-      for (let i = 0; i <= rowIndex; i++) {
-        newElements[i] = [];
-      }
-    }
-    
-    // Ensure the row exists
+    // Ensure the row exists - create all necessary rows up to rowIndex
     while (newElements.length <= rowIndex) {
       newElements.push([]);
     }
@@ -283,8 +276,8 @@ export class ElementStateService {
     }
     
     // Ensure the target row exists
-    if (!newElements[newRowIndex]) {
-      newElements[newRowIndex] = [];
+    while (newElements.length <= newRowIndex) {
+      newElements.push([]);
     }
     
     // Add the element to the new position

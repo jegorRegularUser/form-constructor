@@ -1,6 +1,6 @@
 import { Component, Input, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { BaseFormBlockComponent } from './base-form-block.component';
-import { DragHandleComponent } from './drag-handle.component';
+
 import { CommonModule } from '@angular/common';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { NzStatus } from 'ng-zorro-antd/core/types';
 @Component({
   selector: 'app-textarea',
   standalone: true,
-  imports: [CommonModule, BaseFormBlockComponent, DragHandleComponent, NzInputModule, FormsModule],
+  imports: [CommonModule, BaseFormBlockComponent, NzInputModule, FormsModule],
   templateUrl: './textarea.component.html',
   styles: [`
     @import './drag-styles.css';

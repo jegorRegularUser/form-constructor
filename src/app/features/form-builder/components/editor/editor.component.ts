@@ -340,15 +340,15 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       editorRect
     );
 
-    if (positionInRow.type === 'vertical') {
-      this.showVerticalIndicator(
+    if (positionInRow.type === 'horizontal') {
+      this.showHorizontalIndicator(
         positionInRow,
         targetRowIndex,
         editorRect,
         elementNodes
       );
     } else {
-      this.showHorizontalIndicator(
+      this.showVerticalIndicator(
         positionInRow,
         targetRowIndex,
         editorRect,
@@ -383,15 +383,15 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       editorRect
     );
 
-    if (positionInRow.type === 'vertical') {
-      this.showVerticalIndicator(
+    if (positionInRow.type === 'horizontal') {
+      this.showHorizontalIndicator(
         positionInRow,
         targetRowIndex,
         editorRect,
         elementNodes
       );
     } else {
-      this.showHorizontalIndicator(
+      this.showVerticalIndicator(
         positionInRow,
         targetRowIndex,
         editorRect,
@@ -405,17 +405,6 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     editorRect: DOMRect,
     elementNodes: BaseEditorComponent[]
   ): number {
-    // Сначала проверяем промежутки между строками
-    for (let rowIndex = 0; rowIndex < this.elements.length - 1; rowIndex++) {
-      const currentRowBottom = this.getRowBottom(rowIndex, elementNodes, editorRect);
-      const nextRowTop = this.getRowTop(rowIndex + 1, elementNodes, editorRect);
-      
-      // Если курсор в промежутке между строками
-      if (mouseY >= currentRowBottom && mouseY <= nextRowTop) {
-        return rowIndex; // Возвращаем индекс текущей строки для обработки промежутка
-      }
-    }
-    
     // Затем проверяем сами строки
     for (let rowIndex = 0; rowIndex < this.elements.length; rowIndex++) {
       const rowTop = this.getRowTop(rowIndex, elementNodes, editorRect);
@@ -456,23 +445,17 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       const rowTop = firstRect.top - editorRect.top;
       const rowBottom = lastRect.bottom - editorRect.top;
 
-      // Проверяем, находимся ли мы между строками
+      // Проверяем, находимся ли мы у краев строки (для создания новых строк)
       const rowIndex = this.findCurrentRowIndex(rowElements);
       
+      // Уменьшаем зону чувствительности для горизонтальных линий внутри строк
+      // чтобы они не конфликтовали с горизонтальными линиями между строками
       if (mouseY - rowTop < 15) {
-        // Проверяем, есть ли строка выше
-        if (rowIndex > 0 && !this.hasLargeGapAboveRow(rowIndex, allElementNodes, editorRect)) {
-          return { type: 'horizontal', position: 'between-rows', currentRowIndex: rowIndex, isAbove: true };
-        }
-        return { type: 'horizontal', position: 'top' };
+        return { type: 'horizontal', position: 'top', currentRowIndex: rowIndex };
       }
 
       if (rowBottom - mouseY < 15) {
-        // Проверяем, есть ли строка ниже
-        if (rowIndex < this.elements.length - 1 && !this.hasLargeGapBelowRow(rowIndex, allElementNodes, editorRect)) {
-          return { type: 'horizontal', position: 'between-rows', currentRowIndex: rowIndex, isAbove: false };
-        }
-        return { type: 'horizontal', position: 'bottom' };
+        return { type: 'horizontal', position: 'bottom', currentRowIndex: rowIndex };
       }
     }
 
@@ -508,7 +491,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     }
 
-    // Затем проверяем края элементов (только если нет соседних элементов)
+    // Затем проверяем края элементов
     for (let i = 0; i < rowElements.length; i++) {
       const element = rowElements[i];
       const rect = element.getNativeElement().getBoundingClientRect();
@@ -517,27 +500,28 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       const elementTop = rect.top - editorRect.top;
       const elementBottom = rect.bottom - editorRect.top;
 
-      // Левый край (только если это первый элемент или есть большой промежуток)
+      // Левый край (только если это первый элемент)
       if (
         Math.abs(mouseX - elementLeft) < 20 &&
         mouseY >= elementTop &&
         mouseY <= elementBottom &&
-        (i === 0 || this.hasLargeGapBefore(i, rowElements, editorRect))
+        i === 0
       ) {
         return { type: 'vertical', position: 'left', element };
       }
 
-      // Правый край (только если это последний элемент или есть большой промежуток)
+      // Правый край (всегда показываем для любого элемента)
       if (
-        Math.abs(mouseX - elementRight) < 20 &&
+        mouseX >= elementRight &&
+        mouseX <= elementRight + 40 &&
         mouseY >= elementTop &&
-        mouseY <= elementBottom &&
-        (i === rowElements.length - 1 || this.hasLargeGapAfter(i, rowElements, editorRect))
+        mouseY <= elementBottom
       ) {
         return { type: 'vertical', position: 'right', element };
       }
     }
 
+    // Если ничего не найдено, но есть элементы в строке, показываем справа от последнего
     if (rowElements.length > 0) {
       const lastElement = rowElements[rowElements.length - 1];
       return { type: 'vertical', position: 'end', element: lastElement };
@@ -649,62 +633,32 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     elementNodes: BaseEditorComponent[]
   ) {
     this.indicatorOrientation = 'horizontal';
-    // Статичные размеры
     this.dropIndicatorWidth = editorRect.width - 40;
     this.dropIndicatorHeight = 3;
     this.dropIndicatorLeft = (editorRect.width - this.dropIndicatorWidth) / 2;
 
-    if (positionInRow.position === 'between-rows') {
-      // Отображаем индикатор по центру между строками
-      const currentRowIndex = positionInRow.currentRowIndex;
-      const currentRowBottom = this.getRowBottom(currentRowIndex, elementNodes, editorRect);
-      
-      if (positionInRow.isAbove) {
-        // Между текущей и предыдущей строкой
-        const prevRowBottom = this.getRowBottom(currentRowIndex - 1, elementNodes, editorRect);
-        const currentRowTop = this.getRowTop(currentRowIndex, elementNodes, editorRect);
-        this.dropIndicatorTop = (prevRowBottom + currentRowTop) / 2;
-        
-        this.currentDropPosition = {
-          x: this.dropIndicatorLeft,
-          y: this.dropIndicatorTop,
-          insertBefore: true,
-          targetRowIndex: currentRowIndex,
-          orientation: 'horizontal',
-        };
-      } else {
-        // Между текущей и следующей строкой
-        const nextRowTop = this.getRowTop(currentRowIndex + 1, elementNodes, editorRect);
-        this.dropIndicatorTop = (currentRowBottom + nextRowTop) / 2;
-        
-        this.currentDropPosition = {
-          x: this.dropIndicatorLeft,
-          y: this.dropIndicatorTop,
-          insertBefore: false,
-          targetRowIndex: currentRowIndex,
-          orientation: 'horizontal',
-        };
-      }
-    } else if (positionInRow.position === 'top') {
-      const rowTop = this.getRowTop(rowIndex, elementNodes, editorRect);
+    if (positionInRow.position === 'top') {
+      const currentRowIndex = positionInRow.currentRowIndex || rowIndex;
+      const rowTop = this.getRowTop(currentRowIndex, elementNodes, editorRect);
       this.dropIndicatorTop = rowTop - 5;
 
       this.currentDropPosition = {
         x: this.dropIndicatorLeft,
         y: this.dropIndicatorTop,
         insertBefore: true,
-        targetRowIndex: rowIndex,
+        targetRowIndex: currentRowIndex,
         orientation: 'horizontal',
       };
     } else if (positionInRow.position === 'bottom') {
-      const rowBottom = this.getRowBottom(rowIndex, elementNodes, editorRect);
+      const currentRowIndex = positionInRow.currentRowIndex || rowIndex;
+      const rowBottom = this.getRowBottom(currentRowIndex, elementNodes, editorRect);
       this.dropIndicatorTop = rowBottom + 5;
 
       this.currentDropPosition = {
         x: this.dropIndicatorLeft,
         y: this.dropIndicatorTop,
         insertBefore: false,
-        targetRowIndex: rowIndex,
+        targetRowIndex: currentRowIndex + 1,
         orientation: 'horizontal',
       };
     }
@@ -782,14 +736,14 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       targetRowIndex = this.currentDropPosition.targetRowIndex !== undefined ? this.currentDropPosition.targetRowIndex : 0;
       
       if (this.currentDropPosition.orientation === 'horizontal') {
-        // For horizontal drop, create new row
-        const rowIndex = this.currentDropPosition.targetRowIndex ?? 0;
-        if (this.currentDropPosition.insertBefore) {
-          targetRowIndex = rowIndex;
-        } else {
-          targetRowIndex = rowIndex + 1;
-        }
+        targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
         targetColIndex = 0;
+        
+        // Принудительно создаем новую строку
+        this.elements.splice(targetRowIndex, 0, []);
+        this.elementStateService.addElement(newElement, targetRowIndex, targetColIndex);
+        this.elementSelectionService.selectElement(newElement as FormElementProperties);
+        return;
       } else if (this.currentDropPosition.orientation === 'vertical' && this.currentDropPosition.targetId) {
         const rowIndex = this.currentDropPosition.targetRowIndex;
         if (rowIndex !== undefined && this.elements[rowIndex]) {
@@ -805,6 +759,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     }
     
+    // For vertical drop or fallback case
     this.insertElementViaStateService(newElement, targetRowIndex, targetColIndex);
     // Select the newly created element
     this.elementSelectionService.selectElement(newElement as FormElementProperties);
@@ -890,14 +845,14 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     let targetColIndex = 0;
 
     if (this.currentDropPosition.orientation === 'horizontal') {
-      // For horizontal drop, create new row
-      const rowIndex = this.currentDropPosition.targetRowIndex ?? 0;
-      if (this.currentDropPosition.insertBefore) {
-        targetRowIndex = rowIndex;
-      } else {
-        targetRowIndex = rowIndex + 1;
-      }
+      targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
       targetColIndex = 0;
+      
+      // Принудительно создаем новую строку
+      this.elements.splice(targetRowIndex, 0, []);
+      this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
+      this.elementSelectionService.selectElement(existingElement as FormElementProperties);
+      return;
     } else if (
       this.currentDropPosition.orientation === 'vertical' &&
       this.currentDropPosition.targetRowIndex !== undefined
@@ -918,7 +873,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     }
     
-    // Use the state service to move the element - the editor component will update through the subscription
+    // For vertical drop or fallback case - use the state service to move the element
     this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
     
     // After moving the element, ensure it remains selected
@@ -1017,6 +972,10 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     this.showDropIndicator = true;
     this.dragStateService.setDropPosition(this.currentDropPosition);
   }
+
+
+
+
 
   private updateDropPositions() {
     // Recalculate when elements change

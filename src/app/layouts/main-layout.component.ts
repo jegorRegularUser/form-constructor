@@ -5,14 +5,17 @@ import { PropertyPanelComponent } from '../features/form-builder/components/prop
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 import { ElementSelectionService } from '../core/services/element-selection.service';
 import { PropertyPanelService } from '../core/services/property-panel.service';
 import { DragStateService } from '../core/services/drag-state.service';
+import { ElementStateService } from '../core/services/element-state.service';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzIconModule, SidebarComponent, EditorComponent, PropertyPanelComponent],
+  imports: [CommonModule, FormsModule, NzIconModule, NzButtonModule, SidebarComponent, EditorComponent, PropertyPanelComponent],
   template: `
     <div class="layout">
       <div class="container">
@@ -91,7 +94,9 @@ export class MainLayoutComponent implements OnInit {
   constructor(
     private elementSelectionService: ElementSelectionService,
     private propertyPanelService: PropertyPanelService,
-    private dragStateService: DragStateService
+    private dragStateService: DragStateService,
+    private elementStateService: ElementStateService,
+    private message: NzMessageService
   ) {}
 
   ngOnInit() {
@@ -127,5 +132,11 @@ export class MainLayoutComponent implements OnInit {
 
   handlePropertyPanelToggle() {
     this.togglePropertyPanel();
+  }
+
+  clearForm() {
+    this.elementStateService.clearState();
+    this.elementSelectionService.deselectElement();
+    this.message.success('Form cleared successfully');
   }
 }

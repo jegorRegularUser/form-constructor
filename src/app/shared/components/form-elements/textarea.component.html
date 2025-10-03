@@ -57,7 +57,7 @@
       class="textarea-field"
     ></textarea>
     <div *ngIf="showCount" class="char-counter">
-      {{ value?.length || 0 }}{{ maxLength ? '/' + maxLength : '' }}
+      {{ value.length || 0 }}{{ maxLength ? '/' + maxLength : '' }}
     </div>
     
     <!-- Validation error message -->
