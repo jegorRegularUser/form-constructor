@@ -12,14 +12,11 @@
         <span nz-icon [nzType]="isSidebarCollapsed ? 'right' : 'left'"></span>
       </button>
     </div>
-    <div class="editor-container" [class.sidebar-collapsed]="isSidebarCollapsed" [class.property-panel-collapsed]="isPropertyPanelCollapsed">
-      <app-editor [sidebarCollapsed]="isSidebarCollapsed" [propertyPanelCollapsed]="isPropertyPanelCollapsed"></app-editor>
+    <div class="editor-container" [class.sidebar-collapsed]="isSidebarCollapsed">
+      <app-editor [sidebarCollapsed]="isSidebarCollapsed"></app-editor>
     </div>
-    <div class="property-panel-container" [class.collapsed]="isPropertyPanelCollapsed" [class.hidden]="!isPropertyPanelVisible">
-      <app-property-panel [collapsed]="isPropertyPanelCollapsed" (toggle)="handlePropertyPanelToggle()"></app-property-panel>
-      <button class="toggle-button property-panel-toggle" (click)="togglePropertyPanel()">
-        <span nz-icon [nzType]="isPropertyPanelCollapsed ? 'left' : 'right'"></span>
-      </button>
+    <div class="properties-panel-container">
+      <app-properties-panel></app-properties-panel>
     </div>
   </div>
 </div>

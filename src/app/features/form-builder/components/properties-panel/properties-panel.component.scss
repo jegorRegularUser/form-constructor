@@ -1,0 +1,207 @@
+// properties-panel.component.scss
+.properties-panel {
+  width: 320px;
+  height: 100vh;
+  background: #fafafa;
+  border-left: 1px solid #d9d9d9;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &.collapsed {
+    width: 40px;
+    
+    .panel-content,
+    .element-info,
+    .no-selection {
+      display: none;
+    }
+  }
+
+  .panel-header {
+    background: #fff;
+    border-bottom: 1px solid #d9d9d9;
+    padding: 16px;
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toggle-btn {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        
+        &:hover {
+          background: #f5f5f5;
+        }
+      }
+    }
+
+    .element-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      small {
+        color: #666;
+        font-size: 11px;
+        font-family: monospace;
+      }
+    }
+  }
+
+  .panel-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .action-bar {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      
+      .reset-btn {
+        width: 100%;
+      }
+    }
+
+    .properties-content {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .property-section {
+      padding: 16px;
+      
+      .section-header {
+        margin-bottom: 16px;
+        
+        h4 {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: #262626;
+          border-bottom: 1px solid #f0f0f0;
+          padding-bottom: 8px;
+        }
+      }
+
+      .property-group {
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .property-group-panel {
+          ::ng-deep .ant-collapse-header {
+            padding: 8px 16px !important;
+            font-weight: 500;
+          }
+
+          ::ng-deep .ant-collapse-content-box {
+            padding: 16px !important;
+          }
+        }
+
+        .property-fields {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .property-field {
+            &.has-tooltip {
+              cursor: help;
+            }
+
+            .form-field {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+
+              label {
+                font-size: 12px;
+                font-weight: 500;
+                color: #262626;
+                margin-bottom: 2px;
+              }
+
+              &.boolean-field {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+              }
+
+              &.dimension-field {
+                .dimension-controls {
+                  display: flex;
+                  gap: 8px;
+                  
+                  nz-input-number, nz-select {
+                    flex: 1;
+                  }
+                }
+              }
+
+              .array-field-info {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                padding: 8px;
+                background: #f5f5f5;
+                border-radius: 4px;
+
+                small {
+                  color: #666;
+                  font-size: 11px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .no-selection {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    
+    ::ng-deep .ant-empty-image {
+      height: 60px;
+    }
+  }
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+  .properties-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+
+    &:not(.collapsed) {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+}

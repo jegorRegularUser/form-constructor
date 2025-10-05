@@ -1,0 +1,179 @@
+<!-- properties-panel.component.html -->
+<div class="properties-panel" [class.collapsed]="panelCollapsed">
+  <!-- Panel Header -->
+  <div class="panel-header">
+    <div class="header-content">
+      <h3>
+        <span nz-icon nzType="setting" nzTheme="outline"></span>
+        Properties
+      </h3>
+      <button 
+        nz-button 
+        nzType="text" 
+        nzSize="small" 
+        (click)="togglePanel()"
+        class="toggle-btn"
+      >
+        <span nz-icon [nzType]="panelCollapsed ? 'left' : 'right'"></span>
+      </button>
+    </div>
+    
+    <div class="element-info" *ngIf="selectedElementId && !panelCollapsed">
+      <nz-tag [nzColor]="'blue'">{{ elementType }}</nz-tag>
+      <small>ID: {{ selectedElementId }}</small>
+    </div>
+  </div>
+
+  <!-- Panel Content -->
+  <div class="panel-content" *ngIf="selectedElementId && !panelCollapsed">
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button 
+        nz-button 
+        nzType="default" 
+        nzSize="small" 
+        (click)="resetToDefaults()"
+        class="reset-btn"
+      >
+        <span nz-icon nzType="redo"></span>
+        Reset to Defaults
+      </button>
+    </div>
+
+    <!-- Property Sections -->
+    <div class="properties-content">
+      <div *ngFor="let section of propertySections" class="property-section">
+        <div class="section-header">
+          <h4>{{ section.title }}</h4>
+        </div>
+        <div *ngFor="let group of section.groups" class="property-group">
+          <nz-collapse nzAccordion>
+            <nz-collapse-panel 
+              [nzHeader]="group.title" 
+              [nzActive]="true"
+              class="property-group-panel"
+            >
+              <div class="property-fields" [formGroup]="propertiesForm">
+                <div 
+                  *ngFor="let property of group.properties" 
+                  class="property-field"
+                  [class.has-tooltip]="property.description"
+                  nz-tooltip
+                  [nzTooltipTitle]="property.description"
+                  nzTooltipPlacement="topLeft"
+                >
+                    <!-- Text Field -->
+                    <div *ngIf="isTextProperty(property)" class="form-field">
+                      <label [for]="property.name">{{ property.label }}</label>
+                      <input
+                        nz-input
+                        [id]="property.name"
+                        [formControlName]="getFormControlName(property.name)"
+                        [placeholder]="property.placeholder || ''"
+                        [required]="property.required || false"
+                      >
+                    </div>
+
+                    <!-- Number Field -->
+                    <div *ngIf="isNumberProperty(property)" class="form-field">
+                      <label [for]="property.name">{{ property.label }}</label>
+                      <nz-input-number
+                        [id]="property.name"
+                        [formControlName]="getFormControlName(property.name)"
+                        [nzMin]="property.min"
+                        [nzMax]="property.max"
+                        [nzStep]="property.step || 1"
+                        [nzPlaceHolder]="property.placeholder || ''"
+                        style="width: 100%"
+                      ></nz-input-number>
+                    </div>
+
+                    <!-- Boolean Switch -->
+                    <div *ngIf="isBooleanProperty(property)" class="form-field boolean-field">
+                      <label [for]="property.name">{{ property.label }}</label>
+                      <nz-switch 
+                        [id]="property.name"
+                        [formControlName]="getFormControlName(property.name)"
+                      ></nz-switch>
+                    </div>
+
+                    <!-- Select Field -->
+                    <div *ngIf="isSelectProperty(property)" class="form-field">
+                      <label [for]="property.name">{{ property.label }}</label>
+                      <nz-select
+                        [id]="property.name"
+                        [formControlName]="getFormControlName(property.name)"
+                        [nzPlaceHolder]="property.placeholder || ''"
+                        style="width: 100%"
+                      >
+                        <nz-option
+                          *ngFor="let option of property.options"
+                          [nzLabel]="option.label"
+                          [nzValue]="option.value"
+                        ></nz-option>
+                      </nz-select>
+                    </div>
+
+                    <!-- Color Picker -->
+                    <div *ngIf="isColorProperty(property)" class="form-field">
+                      <label [for]="property.name">{{ property.label }}</label>
+                      <nz-color-picker
+                        [id]="property.name"
+                        [formControlName]="getFormControlName(property.name)"
+                        style="width: 100%"
+                      ></nz-color-picker>
+                    </div>
+
+                    <!-- Dimension Field (Value + Unit) -->
+                    <div *ngIf="isDimensionProperty(property)" class="form-field dimension-field">
+                      <label>{{ property.label }}</label>
+                      <div class="dimension-controls">
+                        <nz-input-number
+                          [ngModel]="getDimensionValue(property.name)"
+                          (ngModelChange)="onDimensionValueChange(property.name, $event)"
+                          [ngModelOptions]="{standalone: true}"
+                          [nzMin]="property.min"
+                          [nzMax]="property.max"
+                          [nzStep]="property.step || 1"
+                          style="width: 60%"
+                        ></nz-input-number>
+                        <nz-select
+                          [ngModel]="getDimensionUnit(property.name)"
+                          (ngModelChange)="onDimensionUnitChange(property.name, $event)"
+                          [ngModelOptions]="{standalone: true}"
+                          style="width: 40%"
+                        >
+                          <nz-option
+                            *ngFor="let unit of property.dimensionUnits || [DimensionUnit.PX]"
+                            [nzLabel]="unit"
+                            [nzValue]="unit"
+                          ></nz-option>
+                        </nz-select>
+                      </div>
+                    </div>
+
+                    <!-- Array Field (Basic) -->
+                    <div *ngIf="isArrayProperty(property)" class="form-field">
+                      <label>{{ property.label }}</label>
+                      <div class="array-field-info">
+                        <nz-tag nzColor="blue">Array Property</nz-tag>
+                        <small>{{ property.description || 'Use advanced editor for array properties' }}</small>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </nz-collapse-panel>
+          </nz-collapse>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Selection Message -->
+  <div class="no-selection" *ngIf="!selectedElementId && !panelCollapsed">
+    <nz-empty 
+      nzNotFoundImage="simple"
+      [nzNotFoundContent]="'Select an element to edit its properties'"
+    ></nz-empty>
+  </div>
+</div>

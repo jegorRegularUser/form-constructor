@@ -51,6 +51,14 @@ export class ElementStateService {
   }
 
   /**
+   * Get element state by ID
+   */
+  getElementState(elementId: string): any {
+    const currentState = this.getCurrentState();
+    return currentState.elementProperties[elementId] || null;
+  }
+
+  /**
    * Update the entire form state
    */
   updateState(newState: FormState): void {

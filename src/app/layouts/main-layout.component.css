@@ -49,6 +49,13 @@ h1 {
   transition: margin-right 0.3s ease, margin-left 0.3s ease;
 }
 
+.properties-panel-container {
+  flex-shrink: 0;
+  width: 320px;
+  border-left: 1px solid #dee2e6;
+  background: #fafafa;
+}
+
 .editor-container.expanded {
   margin-right: 0;
 }
@@ -57,45 +64,21 @@ h1 {
   margin-left: 0;
 }
 
-.editor-container.property-panel-collapsed {
-  margin-right: 0;
-}
-
-.property-panel-container {
-  flex-shrink: 0;
-  width: 300px;
-  border-left: 1px solid #f0f0f0;
-  transition: width 0.3s ease;
-  overflow: hidden;
-  position: relative;
-}
-
-.property-panel-container.collapsed {
-  width: 40px;
-}
-
-.property-panel-container.hidden {
-  width: 0;
-  border-left: none;
-}
-
 @media (max-width: 768px) {
   .sidebar-container {
     width: 150px;
   }
   
-  .property-panel-container {
-    width: 250px;
+  .properties-panel-container {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
   }
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
-  .property-panel-container {
-    width: 250px;
-  }
-}
-
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -107,38 +90,28 @@ h1 {
     border-bottom: 1px solid #dee2e6;
   }
   
-  .property-panel-container {
-    width: 100%;
-    border-left: none;
-    border-top: 1px solid #f0f0f0;
-  }
-  
   .editor-container {
     padding: 12px;
   }
 }
 
 /* Scrollbar styling for better visual consistency */
-.editor-container::-webkit-scrollbar,
-.property-panel-container::-webkit-scrollbar {
+.editor-container::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.editor-container::-webkit-scrollbar-track,
-.property-panel-container::-webkit-scrollbar-track {
+.editor-container::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
 
-.editor-container::-webkit-scrollbar-thumb,
-.property-panel-container::-webkit-scrollbar-thumb {
+.editor-container::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 4px;
 }
 
-.editor-container::-webkit-scrollbar-thumb:hover,
-.property-panel-container::-webkit-scrollbar-thumb:hover {
+.editor-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
@@ -176,11 +149,6 @@ h1 {
   border-left: none;
 }
 
-.property-panel-toggle {
-  left: -12px;
-  border-radius: 4px 0 0 4px;
-  border-right: none;
-}
 
 /* Ensure icons in toggle buttons are properly styled */
 .toggle-button span {

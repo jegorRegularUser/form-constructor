@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -9,9 +9,11 @@ import { FormElementProperties } from '../../../../core/models/element-propertie
 import { BaseFormBlockComponent } from '../base-form-block.component';
 import { DragHandleComponent } from '../drag-handle.component';
 import { ElementStateService } from '../../../../core/services/element-state.service';
+import { ElementSelectionService } from '../../../../core/services/element-selection.service';
 import { FormService } from '../../../../core/services/form.service';
 import { FormValidationError } from '../../../../core/services/form.service';
 import { NzStatus } from 'ng-zorro-antd/core/types';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-select-element',
@@ -29,10 +31,11 @@ import { NzStatus } from 'ng-zorro-antd/core/types';
   templateUrl: './select-element.component.html',
   styleUrls: ['./select-element.component.css']
 })
-export class SelectElementComponent extends BaseFormBlockComponent implements OnInit, OnChanges {
+export class SelectElementComponent extends BaseFormBlockComponent implements OnInit, OnChanges, OnDestroy {
   @Input() properties: FormElementProperties = {} as FormElementProperties;
   @Input() value: any = null;
   @Output() valueChange = new EventEmitter<any>();
+  @Output() override openSettings = new EventEmitter<string>();
   
   // Extracted properties for easier access
   override label: string = '';
@@ -49,13 +52,16 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
   // Form validation
   validationStatus: NzStatus = '';
   validationErrors: FormValidationError[] = [];
+
+  private propertiesSubscription?: Subscription;
   
   constructor(
     elementRef: ElementRef,
     private elementStateService: ElementStateService,
-    private formService: FormService
+    private formService: FormService,
+    elementSelectionService: ElementSelectionService
   ) {
-    super(elementRef);
+    super(elementRef, elementSelectionService);
     
     // Subscribe to form validation results
     this.formService.formValidationResult$.subscribe(result => {
@@ -63,8 +69,21 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
     });
   }
   
-  ngOnInit(): void {
+  override ngOnInit(): void {
+    super.ngOnInit();
     this.updateFromProperties();
+    
+    // Subscribe to properties changes from state service
+    if (this.properties && this.properties.id) {
+      this.propertiesSubscription = this.elementStateService.formState$.subscribe(state => {
+        if (this.properties?.id && state.elementProperties[this.properties.id]) {
+          // Update properties from state service
+          const updatedProperties = state.elementProperties[this.properties.id];
+          this.properties = { ...this.properties, ...updatedProperties };
+          this.updateFromProperties();
+        }
+      });
+    }
   }
   
   override ngOnChanges(changes: SimpleChanges): void {
@@ -309,6 +328,14 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
     }
   }
   
+  override ngOnDestroy(): void {
+    // Clean up subscription
+    if (this.propertiesSubscription) {
+      this.propertiesSubscription.unsubscribe();
+    }
+    super.ngOnDestroy();
+  }
+
   /**
    * Update the options in the properties object
    */

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -8,7 +8,9 @@ import { FormElementProperties, ButtonAction } from '../../../../core/models/ele
 import { BaseFormBlockComponent } from '../base-form-block.component';
 import { DragHandleComponent } from '../drag-handle.component';
 import { ElementStateService } from '../../../../core/services/element-state.service';
+import { ElementSelectionService } from '../../../../core/services/element-selection.service';
 import { FormService } from '../../../../core/services/form.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-button-element',
@@ -25,9 +27,10 @@ import { FormService } from '../../../../core/services/form.service';
   templateUrl: './button-element.component.html',
   styleUrls: ['./button-element.component.css']
 })
-export class ButtonElementComponent extends BaseFormBlockComponent implements OnInit, OnChanges {
+export class ButtonElementComponent extends BaseFormBlockComponent implements OnInit, OnChanges, OnDestroy {
   @Input() properties: FormElementProperties = {} as FormElementProperties;
   @Output() click = new EventEmitter<Event>();
+  @Output() override openSettings = new EventEmitter<string>();
   
   // Extracted properties for easier access
   text: string = '';
@@ -45,16 +48,31 @@ export class ButtonElementComponent extends BaseFormBlockComponent implements On
   description: string = '';
   action?: ButtonAction;
   
+  private propertiesSubscription?: Subscription;
+  
   constructor(
     elementRef: ElementRef,
     private elementStateService: ElementStateService,
-    private formService: FormService
+    private formService: FormService,
+    elementSelectionService: ElementSelectionService
   ) {
-    super(elementRef);
+    super(elementRef, elementSelectionService);
   }
   
-  ngOnInit(): void {
+  override ngOnInit(): void {
+    super.ngOnInit();
     this.updateFromProperties();
+    
+    // Subscribe to properties changes from state service
+    if (this.properties && this.properties.id) {
+      this.propertiesSubscription = this.elementStateService.formState$.subscribe(state => {
+        if (this.properties?.id && state.elementProperties[this.properties.id]) {
+          const updatedProperties = state.elementProperties[this.properties.id];
+          this.properties = { ...this.properties, ...updatedProperties };
+          this.updateFromProperties();
+        }
+      });
+    }
   }
   
   override ngOnChanges(changes: SimpleChanges): void {
@@ -197,5 +215,12 @@ export class ButtonElementComponent extends BaseFormBlockComponent implements On
     
     // Emit the click event for other handlers
     this.click.emit(event);
+  }
+
+  override ngOnDestroy(): void {
+    if (this.propertiesSubscription) {
+      this.propertiesSubscription.unsubscribe();
+    }
+    super.ngOnDestroy();
   }
 }

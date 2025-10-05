@@ -187,8 +187,8 @@ export interface PropertyEditorConfig {
   outputs?: Record<string, string>; // Output event handlers
 }
 
-// Property panel configuration
-export interface PropertyPanelConfig {
+// Property configuration
+export interface PropertyConfig {
   title?: string;
   width?: string | number;
   resizable?: boolean;

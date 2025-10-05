@@ -1,7 +1,7 @@
 /**
  * Property Type Enum
- * 
- * Defines all supported property types for the form builder property panel
+ *
+ * Defines all supported property types for the form builder
  */
 export enum PropertyType {
   TEXT = 'text',

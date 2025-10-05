@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { DragStateService } from '../../../../core/services/drag-state.service';
 import { ElementRegistryService } from '../../../../core/services/element-registry.service';
-import { PropertyPanelService } from '../../../../core/services/property-panel.service';
 import { ElementSelectionService } from '../../../../core/services/element-selection.service';
 import { DragData } from '../../../../core/models/drag-data.model';
 import { CommonModule } from '@angular/common';
@@ -128,7 +127,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   constructor(
     private dragStateService: DragStateService,
     private elementRegistryService: ElementRegistryService,
-    private propertyPanelService: PropertyPanelService,
     private elementSelectionService: ElementSelectionService
   ) {}
 

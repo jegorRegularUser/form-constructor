@@ -131,8 +131,3 @@
 .sidebar-collapsed .editor {
   margin-left: 0;
 }
-
-/* Styles for when property panel is collapsed */
-.property-panel-collapsed .editor {
-  margin-right: 0;
-}

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export interface PropertyPanelState {
+export interface PropertiesPanelState {
   isOpen: boolean;
   width: number;
   activeSection: string;
@@ -10,8 +10,8 @@ export interface PropertyPanelState {
 @Injectable({
   providedIn: 'root'
 })
-export class PropertyPanelService {
-  private stateSubject = new BehaviorSubject<PropertyPanelState>({
+export class PropertiesPanelService {
+  private stateSubject = new BehaviorSubject<PropertiesPanelState>({
     isOpen: true,
     width: 320,
     activeSection: 'basic'
@@ -31,7 +31,7 @@ export class PropertyPanelService {
     const currentState = this.stateSubject.value;
     this.stateSubject.next({
       ...currentState,
-      width: Math.max(280, Math.min(600, width)) // Width constraints
+      width: Math.max(280, Math.min(600, width)) // Ограничения по ширине
     });
   }
 
@@ -43,7 +43,7 @@ export class PropertyPanelService {
     });
   }
 
-  getCurrentState(): PropertyPanelState {
+  getCurrentState(): PropertiesPanelState {
     return this.stateSubject.value;
   }
 }

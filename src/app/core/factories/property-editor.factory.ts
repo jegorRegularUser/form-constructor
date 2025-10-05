@@ -2,7 +2,6 @@ import { Injectable, ComponentFactoryResolver, ViewContainerRef, ComponentRef } 
 import { PropertyDefinition } from '../models/property-schema.model';
 import { PropertyType, PROPERTY_EDITOR_COMPONENTS } from '../enums/property-type.enum';
 import { PropertyEditorConfig } from '../models/property-schema.model';
-import { BaseGenericPropertyEditorComponent } from '../../features/form-builder/components/property-panel/base-generic-property-editor.component';
 
 /**
  * Property Editor Factory
@@ -147,32 +146,9 @@ export class PropertyEditorFactory {
     validationChange?: (result: any) => void,
     disabled: boolean = false
   ): ComponentRef<any> | null {
-    // Clear any existing content in the container
-    container.clear();
-
-    // Create the component factory for the base generic property editor
-    const componentFactory = this.componentFactoryResolver.resolveComponentFactory(BaseGenericPropertyEditorComponent);
-
-    // Create the component
-    const componentRef = container.createComponent(componentFactory);
-
-    // Set inputs
-    if (componentRef.instance) {
-      const instance = componentRef.instance as any;
-      instance.property = property;
-      instance.value = value;
-      instance.disabled = disabled;
-
-      // Subscribe to value changes
-      instance.valueChange.subscribe(valueChange);
-
-      // Subscribe to validation changes if available and requested
-      if (validationChange) {
-        instance.validationChange.subscribe(validationChange);
-      }
-    }
-
-    return componentRef;
+    // Since property editor components are removed, we can't create a generic property editor
+    // Return null to indicate that no editor could be created
+    return null;
   }
 
   /**

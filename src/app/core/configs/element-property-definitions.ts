@@ -11,9 +11,9 @@ import {
 
 /**
  * Property Definitions for Common Element Types
- * 
+ *
  * Predefined property sections and groups for common element types
- * to reduce duplication and make the property panel more maintainable
+ * to reduce duplication and make the form builder more maintainable
  */
 
 /**

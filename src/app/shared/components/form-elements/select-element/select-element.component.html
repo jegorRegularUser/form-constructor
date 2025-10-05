@@ -1,5 +1,6 @@
 <app-base-form-block
   [id]="id"
+  [type]="'select'"
   [isDragged]="isDragged"
   [isSelected]="isSelected"
   [layout]="layout"
@@ -14,7 +15,8 @@
   (labelEditCancel)="cancelLabelEdit()"
   (deleteElement)="deleteElement.emit($event)"
   (duplicateElement)="duplicateElement.emit($event)"
-  (toggleRequired)="toggleRequired.emit($event)">
+  (toggleRequired)="toggleRequired.emit($event)"
+  (openSettings)="openSettings.emit($event)">
   
   <div class="select-wrapper">
     <!-- Display mode for label -->

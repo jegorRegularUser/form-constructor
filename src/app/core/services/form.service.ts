@@ -3,7 +3,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { FormElementProperties } from '../models/element-properties.model';
 import { FormProperties } from '../models/form-properties.model';
 import { ElementStateService } from './element-state.service';
-import { PropertyPanelService } from './property-panel.service';
 
 export interface FormSubmissionData {
   [key: string]: any;
@@ -60,8 +59,7 @@ export class FormService {
   formSubmitted$ = this.formSubmittedSubject.asObservable();
 
   constructor(
-    private elementStateService: ElementStateService,
-    private propertyPanelService: PropertyPanelService
+    private elementStateService: ElementStateService
   ) {
     // Subscribe to element state changes to revalidate form when elements change
     this.elementStateService.getState$().subscribe(() => {
@@ -73,7 +71,34 @@ export class FormService {
    * Get the current form properties
    */
   getFormProperties(): FormProperties {
-    return this.propertyPanelService.getFormProperties();
+    // Return default form properties
+    return {
+      id: 'default-form',
+      title: 'Form',
+      description: '',
+      titleConfig: {
+        visible: true,
+        text: 'Form Title',
+        position: 'top',
+        alignment: 'center',
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#000000',
+        padding: '8px 16px',
+        margin: '0 0 16px 0'
+      },
+      formStyle: {
+        backgroundColor: '#ffffff',
+        borderColor: '#cccccc',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderRadius: 4,
+        padding: '16px',
+        margin: '0 auto',
+        width: '100%',
+        height: 'auto'
+      }
+    };
   }
 
   /**
@@ -345,8 +370,8 @@ export class FormService {
    * Update an element's value
    */
   updateElementValue(elementId: string, value: any): void {
-    // Update the element's value in the property panel service
-    this.propertyPanelService.updateElementProperty(elementId, 'value', value);
+    // Update the element's value in the element state service
+    this.elementStateService.updateElementProperties(elementId, { value });
     
     // Revalidate the form after updating the value
     this.validateForm();

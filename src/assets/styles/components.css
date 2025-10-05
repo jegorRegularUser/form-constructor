@@ -265,12 +265,7 @@
   line-height: var(--line-height-tight);
 }
 
-/* ===== PROPERTY PANEL ===== */
-.property-panel {
-  max-height: 100%;
-  overflow-y: auto;
-}
-
+/* ===== PROPERTY STYLES ===== */
 .property-section {
   margin-bottom: var(--space-6);
 }

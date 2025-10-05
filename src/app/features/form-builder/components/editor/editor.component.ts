@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import { DragStateService } from '../../../../core/services/drag-state.service';
 import { ElementSelectionService } from '../../../../core/services/element-selection.service';
-import { PropertyPanelService } from '../../../../core/services/property-panel.service';
 import { ElementRegistryService } from '../../../../core/services/element-registry.service';
 import { ElementFactory } from '../../../../core/factories/element-factory.service';
 import { ElementStateService } from '../../../../core/services/element-state.service';
@@ -47,7 +46,6 @@ export interface BaseEditorComponent {
 })
 export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() sidebarCollapsed = false;
-  @Input() propertyPanelCollapsed = false;
   private destroy$ = new Subject<void>();
   // Универсальный QueryList для всех типов компонентов
   @ViewChildren('inputElement') inputElements!: QueryList<BaseEditorComponent>;
@@ -77,7 +75,6 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     private dragStateService: DragStateService,
     private elementSelectionService: ElementSelectionService,
     private elementRef: ElementRef,
-    private propertyPanelService: PropertyPanelService,
     private elementRegistryService: ElementRegistryService,
     private elementFactory: ElementFactory,
     private elementStateService: ElementStateService,
@@ -112,12 +109,10 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       // The drag state service will handle restoring the selection if needed
     });
 
-    // Subscribe to form properties changes
-    this.propertyPanelService.formProperties$.subscribe(properties => {
-      this.formProperties = properties;
-      this.updateTitleStyles();
-      this.updateFormStyles();
-    });
+    // Initialize form properties
+    this.formProperties = { id: 'default-form' };
+    this.updateTitleStyles();
+    this.updateFormStyles();
 
     // Subscribe to element state changes
     this.elementStateService.getState$().subscribe(state => {
@@ -127,12 +122,6 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Subscribe to element property changes
-    this.propertyPanelService.elementProperties$.subscribe(properties => {
-      // Update elements with new properties
-      this.updateElementProperties(properties);
-    });
-
     // Load initial state from element state service
     const initialState = this.elementStateService.getCurrentState();
     this.elements = initialState.elements;
@@ -162,23 +151,13 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  // Универсальный метод для получения всех элементов редактора
   private getAllEditorElements(): BaseEditorComponent[] {
-    const allElements: BaseEditorComponent[] = [];
-    
-    // Добавляем input элементы
-    allElements.push(...this.inputElements.toArray());
-    
-    // Добавляем textarea элементы
-    allElements.push(...this.textareaElements.toArray());
-    
-    // Добавляем button элементы
-    allElements.push(...this.buttonElements.toArray());
-    
-    // Добавляем select элементы
-    allElements.push(...this.selectElements.toArray());
-    
-    return allElements;
+    return [
+      ...this.inputElements.toArray(),
+      ...this.textareaElements.toArray(),
+      ...this.buttonElements.toArray(),
+      ...this.selectElements.toArray()
+    ];
   }
 
   isElementDragged(elementId: string): boolean {
@@ -283,49 +262,15 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private calculateDropPosition(
-    mouseX: number,
-    mouseY: number,
-    editorRect: DOMRect
-  ) {
-    const elementNodes = this.getAllEditorElements();
-
-    // Handle empty form case
+  private calculateDropPosition(mouseX: number, mouseY: number, editorRect: DOMRect) {
     if (this.elements.length === 0 || (this.elements.length === 1 && this.elements[0].length === 0)) {
       this.showEmptyFormDropIndicator(mouseX, mouseY, editorRect);
       return;
     }
 
-    if (this.dragData?.type === 'input' || this.dragData?.type === 'textarea' ||
-        this.dragData?.type === 'select' || this.dragData?.type === 'button') {
-      this.calculateDropPositionFromSidebar(
-        mouseX,
-        mouseY,
-        editorRect,
-        elementNodes
-      );
-    } else {
-      this.calculateDropPositionFromEditor(
-        mouseX,
-        mouseY,
-        editorRect,
-        elementNodes
-      );
-    }
-  }
-
-  private calculateDropPositionFromSidebar(
-    mouseX: number,
-    mouseY: number,
-    editorRect: DOMRect,
-    elementNodes: BaseEditorComponent[]
-  ) {
-    let targetRowIndex = this.findRowIndexByPosition(
-      mouseY,
-      editorRect,
-      elementNodes
-    );
-
+    const elementNodes = this.getAllEditorElements();
+    const targetRowIndex = this.findRowIndexByPosition(mouseY, editorRect, elementNodes);
+    
     if (targetRowIndex === -1) {
       this.showDropIndicator = false;
       this.dragStateService.setDropPosition(null);
@@ -333,98 +278,32 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     }
 
     const rowElements = this.getElementsInRow(targetRowIndex, elementNodes);
-    const positionInRow = this.findPositionInRow(
-      mouseX,
-      mouseY,
-      rowElements,
-      editorRect
-    );
+    const positionInRow = this.findPositionInRow(mouseX, mouseY, rowElements, editorRect);
 
     if (positionInRow.type === 'horizontal') {
-      this.showHorizontalIndicator(
-        positionInRow,
-        targetRowIndex,
-        editorRect,
-        elementNodes
-      );
+      this.showHorizontalIndicator(positionInRow, targetRowIndex, editorRect, elementNodes);
     } else {
-      this.showVerticalIndicator(
-        positionInRow,
-        targetRowIndex,
-        editorRect,
-        elementNodes
-      );
+      this.showVerticalIndicator(positionInRow, targetRowIndex, editorRect, elementNodes);
     }
   }
 
-  private calculateDropPositionFromEditor(
-    mouseX: number,
-    mouseY: number,
-    editorRect: DOMRect,
-    elementNodes: BaseEditorComponent[]
-  ) {
-    let targetRowIndex = this.findRowIndexByPosition(
-      mouseY,
-      editorRect,
-      elementNodes
-    );
 
-    if (targetRowIndex === -1) {
-      this.showDropIndicator = false;
-      this.dragStateService.setDropPosition(null);
-      return;
-    }
 
-    const rowElements = this.getElementsInRow(targetRowIndex, elementNodes);
-    const positionInRow = this.findPositionInRow(
-      mouseX,
-      mouseY,
-      rowElements,
-      editorRect
-    );
 
-    if (positionInRow.type === 'horizontal') {
-      this.showHorizontalIndicator(
-        positionInRow,
-        targetRowIndex,
-        editorRect,
-        elementNodes
-      );
-    } else {
-      this.showVerticalIndicator(
-        positionInRow,
-        targetRowIndex,
-        editorRect,
-        elementNodes
-      );
-    }
-  }
 
-  private findRowIndexByPosition(
-    mouseY: number,
-    editorRect: DOMRect,
-    elementNodes: BaseEditorComponent[]
-  ): number {
-    // Затем проверяем сами строки
-    for (let rowIndex = 0; rowIndex < this.elements.length; rowIndex++) {
-      const rowTop = this.getRowTop(rowIndex, elementNodes, editorRect);
-      const rowBottom = this.getRowBottom(rowIndex, elementNodes, editorRect);
-
-      if (mouseY >= rowTop && mouseY <= rowBottom) {
-        return rowIndex;
-      }
+  private findRowIndexByPosition(mouseY: number, editorRect: DOMRect, elementNodes: BaseEditorComponent[]): number {
+    for (let i = 0; i < this.elements.length; i++) {
+      const rowTop = this.getRowTop(i, elementNodes, editorRect);
+      const rowBottom = this.getRowBottom(i, elementNodes, editorRect);
+      if (mouseY >= rowTop && mouseY <= rowBottom) return i;
     }
     return -1;
   }
 
-  private getElementsInRow(
-    rowIndex: number,
-    elementNodes: BaseEditorComponent[]
-  ): BaseEditorComponent[] {
+  private getElementsInRow(rowIndex: number, elementNodes: BaseEditorComponent[]): BaseEditorComponent[] {
     if (rowIndex < 0 || rowIndex >= this.elements.length) return [];
-
-    const rowElementIds = this.elements[rowIndex].map((el) => el.id);
-    return elementNodes.filter((el) => rowElementIds.includes(el.id));
+    const rowElementIds = new Set(this.elements[rowIndex].map(el => el.id));
+    return elementNodes.filter(el => rowElementIds.has(el.id));
   }
 
   private findPositionInRow(
@@ -700,183 +579,72 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private insertNewElement(elementType: string) {
-    // Use the element factory to create a new element
     const newElement = this.elementFactory.createElement(elementType);
 
-    // Initialize element properties in the property panel service
-    this.propertyPanelService.updateElementProperty(newElement.id, 'id', newElement.id);
-    this.propertyPanelService.updateElementProperty(newElement.id, 'type', newElement.type);
-    
-    // Set all default properties
-    Object.keys(newElement).forEach(key => {
-      if (key !== 'id' && key !== 'type') {
-        this.propertyPanelService.updateElementProperty(newElement.id, key, (newElement as any)[key]);
-      }
-    });
-
     if (!this.currentDropPosition) {
-      if (this.elements.length === 0 || (this.elements.length === 1 && this.elements[0].length === 0)) {
-        // Add element to state service only - the editor component will update through the subscription
-        this.elementStateService.addElement(newElement, 0, 0);
-      } else {
-        // Add element to state service only - the editor component will update through the subscription
-        this.elementStateService.addElement(newElement, 0, this.elements[0].length);
-      }
-      // Select the newly created element
+      const targetRow = this.elements.length === 0 || (this.elements.length === 1 && this.elements[0].length === 0) ? 0 : 0;
+      const targetCol = this.elements.length === 0 || (this.elements.length === 1 && this.elements[0].length === 0) ? 0 : this.elements[0].length;
+      this.elementStateService.addElement(newElement, targetRow, targetCol);
       this.elementSelectionService.selectElement(newElement as FormElementProperties);
       return;
     }
 
-    // Use the state service to add the element - the editor component will update through the subscription
-    // Calculate the target position based on currentDropPosition
-    let targetRowIndex = 0;
+    let targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
     let targetColIndex = 0;
     
-    if (this.currentDropPosition) {
-      targetRowIndex = this.currentDropPosition.targetRowIndex !== undefined ? this.currentDropPosition.targetRowIndex : 0;
-      
-      if (this.currentDropPosition.orientation === 'horizontal') {
-        targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
-        targetColIndex = 0;
-        
-        // Принудительно создаем новую строку
-        this.elements.splice(targetRowIndex, 0, []);
-        this.elementStateService.addElement(newElement, targetRowIndex, targetColIndex);
-        this.elementSelectionService.selectElement(newElement as FormElementProperties);
-        return;
-      } else if (this.currentDropPosition.orientation === 'vertical' && this.currentDropPosition.targetId) {
-        const rowIndex = this.currentDropPosition.targetRowIndex;
-        if (rowIndex !== undefined && this.elements[rowIndex]) {
-          const colIndex = this.elements[rowIndex].findIndex(
-            (el: EditorElement) => el.id === this.currentDropPosition!.targetId
-          );
-          if (colIndex !== -1) {
-            targetColIndex = this.currentDropPosition.insertBefore ? colIndex : colIndex + 1;
-          } else {
-            targetColIndex = this.elements[rowIndex].length;
-          }
-        }
+    if (this.currentDropPosition.orientation === 'horizontal') {
+      this.elements.splice(targetRowIndex, 0, []);
+      this.elementStateService.addElement(newElement, targetRowIndex, 0);
+    } else if (this.currentDropPosition.targetId) {
+      const rowIndex = this.currentDropPosition.targetRowIndex;
+      if (rowIndex !== undefined && this.elements[rowIndex]) {
+        const colIndex = this.elements[rowIndex].findIndex(el => el.id === this.currentDropPosition!.targetId);
+        targetColIndex = colIndex !== -1 ? (this.currentDropPosition.insertBefore ? colIndex : colIndex + 1) : this.elements[rowIndex].length;
       }
+      this.elementStateService.addElement(newElement, targetRowIndex, targetColIndex);
+    } else {
+      this.elementStateService.addElement(newElement, targetRowIndex, targetColIndex);
     }
     
-    // For vertical drop or fallback case
-    this.insertElementViaStateService(newElement, targetRowIndex, targetColIndex);
-    // Select the newly created element
     this.elementSelectionService.selectElement(newElement as FormElementProperties);
   }
 
-  private insertElement(newElement: EditorElement) {
-    if (!this.currentDropPosition) return;
 
-    let targetRowIndex = this.currentDropPosition.targetRowIndex || 0;
-    let targetColIndex = 0;
 
-    if (
-      this.currentDropPosition.orientation === 'vertical' &&
-      this.currentDropPosition.targetRowIndex !== undefined
-    ) {
-      const rowIndex = this.currentDropPosition.targetRowIndex;
 
-      if (!this.elements[rowIndex]) {
-        this.elements[rowIndex] = [];
-      }
-
-      if (this.currentDropPosition.targetId) {
-        const colIndex = this.elements[rowIndex].findIndex(
-          (el) => el.id === this.currentDropPosition!.targetId
-        );
-        if (colIndex !== -1) {
-          if (this.currentDropPosition.insertBefore) {
-            targetColIndex = colIndex;
-          } else {
-            targetColIndex = colIndex + 1;
-          }
-        } else {
-          targetColIndex = this.elements[rowIndex].length;
-        }
-      } else {
-        targetColIndex = 0;
-      }
-    } else if (
-      this.currentDropPosition.orientation === 'horizontal' &&
-      this.currentDropPosition.targetRowIndex !== undefined
-    ) {
-      const rowIndex = this.currentDropPosition.targetRowIndex;
-      if (this.currentDropPosition.insertBefore) {
-        targetRowIndex = rowIndex;
-      } else {
-        targetRowIndex = rowIndex + 1;
-      }
-      targetColIndex = 0;
-    }
-
-    // Use the state service to add the element - the editor component will update through the subscription
-    this.insertElementViaStateService(newElement, targetRowIndex, targetColIndex);
-  }
-
-  private insertElementViaStateService(newElement: EditorElement, targetRowIndex: number, targetColIndex: number) {
-    // Add element to state service only - the editor component will update through the subscription
-    this.elementStateService.addElement(newElement, targetRowIndex, targetColIndex);
-  }
 
   private moveExistingElement() {
     if (!this.currentDropPosition || !this.dragData) return;
 
     let existingElement: EditorElement | null = null;
-    let sourceRowIndex = -1;
-    let sourceColIndex = -1;
     
-    // Find the element in the current elements array
-    for (let rowIndex = 0; rowIndex < this.elements.length; rowIndex++) {
-      const colIndex = this.elements[rowIndex].findIndex(
-        (el: EditorElement) => el.id === this.dragData.id
-      );
+    for (let i = 0; i < this.elements.length; i++) {
+      const colIndex = this.elements[i].findIndex(el => el.id === this.dragData.id);
       if (colIndex !== -1) {
-        existingElement = this.elements[rowIndex][colIndex];
-        sourceRowIndex = rowIndex;
-        sourceColIndex = colIndex;
+        existingElement = this.elements[i][colIndex];
         break;
       }
     }
 
     if (!existingElement) return;
 
-    let targetRowIndex = this.currentDropPosition.targetRowIndex !== undefined ? this.currentDropPosition.targetRowIndex : 0;
+    let targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
     let targetColIndex = 0;
 
     if (this.currentDropPosition.orientation === 'horizontal') {
-      targetRowIndex = this.currentDropPosition.targetRowIndex ?? 0;
-      targetColIndex = 0;
-      
-      // Принудительно создаем новую строку
       this.elements.splice(targetRowIndex, 0, []);
-      this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
-      this.elementSelectionService.selectElement(existingElement as FormElementProperties);
-      return;
-    } else if (
-      this.currentDropPosition.orientation === 'vertical' &&
-      this.currentDropPosition.targetRowIndex !== undefined
-    ) {
+      this.elementStateService.moveElement(existingElement.id, targetRowIndex, 0);
+    } else if (this.currentDropPosition.targetId) {
       const rowIndex = this.currentDropPosition.targetRowIndex;
-
-      if (this.currentDropPosition.targetId) {
-        const colIndex = this.elements[rowIndex]?.findIndex(
-          (el: EditorElement) => el.id === this.currentDropPosition!.targetId
-        );
-        if (colIndex !== -1 && colIndex !== undefined) {
-          targetColIndex = this.currentDropPosition.insertBefore ? colIndex : colIndex + 1;
-        } else {
-          targetColIndex = this.elements[rowIndex]?.length || 0;
-        }
-      } else {
-        targetColIndex = 0;
+      if (rowIndex !== undefined && this.elements[rowIndex]) {
+        const colIndex = this.elements[rowIndex].findIndex(el => el.id === this.currentDropPosition!.targetId);
+        targetColIndex = colIndex !== -1 ? (this.currentDropPosition.insertBefore ? colIndex : colIndex + 1) : this.elements[rowIndex].length;
       }
+      this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
+    } else {
+      this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
     }
     
-    // For vertical drop or fallback case - use the state service to move the element
-    this.elementStateService.moveElement(existingElement.id, targetRowIndex, targetColIndex);
-    
-    // After moving the element, ensure it remains selected
     this.elementSelectionService.selectElement(existingElement as FormElementProperties);
   }
 
@@ -1102,13 +870,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
    * Get element properties by element ID
    */
   getElementProperties(elementId: string): FormElementProperties {
-    // First check if we have properties in the property panel service
-    const serviceProperties = this.propertyPanelService.getElementProperties(elementId);
-    if (serviceProperties) {
-      return serviceProperties;
-    }
-    
-    // If not in service, find the element in our elements array
+    // Find the element in our elements array
     for (const row of this.elements) {
       const element = row.find(el => el.id === elementId);
       if (element) {
@@ -1189,16 +951,6 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     // Insert the new element after the original
     this.elements[rowIndex].splice(colIndex + 1, 0, newElement);
     
-    // Initialize element properties in the property panel service
-    this.propertyPanelService.updateElementProperty(newElement.id, 'id', newElement.id);
-    this.propertyPanelService.updateElementProperty(newElement.id, 'type', newElement.type);
-    
-    // Set all properties
-    Object.keys(newElement).forEach(key => {
-      if (key !== 'id' && key !== 'type') {
-        this.propertyPanelService.updateElementProperty(newElement.id, key, (newElement as any)[key]);
-      }
-    });
     
     // Select the new element
     this.elementSelectionService.selectElement(newElement as FormElementProperties);
@@ -1210,8 +962,15 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
    * Handle toggle required field
    */
   onToggleRequired(data: { id: string, required: boolean }): void {
-    // Update the required property in the property panel service
-    this.propertyPanelService.updateElementProperty(data.id, 'required', data.required);
+    // Find the element and update its required property
+    for (const row of this.elements) {
+      const element = row.find(el => el.id === data.id);
+      if (element) {
+        (element as any).required = data.required;
+        this.elementStateService.updateElementProperties(data.id, { required: data.required });
+        break;
+      }
+    }
     
     // Show a message
     if (data.required) {
@@ -1225,47 +984,21 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
    * Get custom element properties by element ID
    */
   getCustomElementProperties(elementId: string): Record<string, any> {
-    // Get custom properties from the property panel service
-    return this.propertyPanelService.getCustomElementProperty(elementId, '') || {};
-  }
-  
-  /**
-   * Update element properties when they change in the property panel
-   */
-  private updateElementProperties(properties: Record<string, FormElementProperties>): void {
-    // Update our local elements array with the new properties
+    // Find the element and return its custom properties
     for (const row of this.elements) {
-      for (let i = 0; i < row.length; i++) {
-        const element = row[i];
-        if (properties[element.id]) {
-          // Create a new element object with merged properties
-          const updatedElement: EditorElement = {
-            ...element,
-            ...properties[element.id]
-          } as EditorElement;
-          
-          // Update custom properties if they exist
-          if (properties[element.id].customProperties) {
-            if (!updatedElement.customProperties) {
-              updatedElement.customProperties = {};
-            }
-            Object.assign(updatedElement.customProperties, properties[element.id].customProperties);
-          }
-          
-          // Replace the element in the array
-          row[i] = updatedElement;
-        }
+      const element = row.find(el => el.id === elementId);
+      if (element && element.customProperties) {
+        return element.customProperties;
       }
     }
+    return {};
   }
+  
   
   /**
    * Handle inline label editing events
    */
   onLabelEdit(elementId: string, newLabel: string): void {
-    // Update the element's label property
-    this.propertyPanelService.updateElementProperty(elementId, 'label', newLabel);
-    
     // Update element in state service
     this.elementStateService.updateElementProperties(elementId, { label: newLabel });
     
@@ -1295,7 +1028,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     
     if (selectedElement) {
-      // Select the element to show its properties in the property panel
+      // Select the element
       this.elementSelectionService.selectElement(selectedElement);
     }
   }

@@ -3,9 +3,9 @@ import { PropertyDefinition, SelectOption } from '../models/property-schema.mode
 
 /**
  * Property Configuration Arrays
- * 
+ *
  * Predefined configurations for common property types to reduce duplication
- * and make the property panel more maintainable
+ * and make the form builder more maintainable
  */
 
 /**
@@ -326,7 +326,36 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
     type: PropertyType.COLOR,
     label: 'Color',
     description: 'Color value',
-    defaultValue: '#000000',
+    defaultValue: '#000000'
+  }
+};
+
+/**
+ * Helper function to create property definition with defaults
+ */
+export function createPropertyDefinition(
+  name: string,
+  type: PropertyType,
+  label: string,
+  overrides: Partial<PropertyDefinition> = {}
+): PropertyDefinition {
+  const baseConfig = {
+    name,
+    type,
+    label,
+    ...DEFAULT_PROPERTY_CONFIG[type],
+    ...overrides
+  };
+  
+  return baseConfig as PropertyDefinition;
+}
+
+/**
+ * Get property configuration by type
+ */
+export function getPropertyConfig(type: PropertyType): Partial<PropertyDefinition> {
+  return DEFAULT_PROPERTY_CONFIG[type] || {};
+} '#000000',
     placeholder: '#000000'
   },
   backgroundColor: {

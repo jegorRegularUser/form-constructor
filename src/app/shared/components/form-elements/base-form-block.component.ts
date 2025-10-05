@@ -1,10 +1,12 @@
-import { Component, Input, ElementRef, HostBinding, Output, EventEmitter, HostListener, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, ElementRef, HostBinding, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { DragHandleComponent } from './drag-handle.component';
 import { DimensionValue, LayoutProperties } from '../../../core/models/element-properties.model';
+import { ElementSelectionService } from '../../../core/services/element-selection.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-base-form-block',
@@ -31,8 +33,9 @@ import { DimensionValue, LayoutProperties } from '../../../core/models/element-p
     '[style.max-height]': 'elementMaxHeight'
   }
 })
-export class BaseFormBlockComponent implements OnChanges {
+export class BaseFormBlockComponent implements OnChanges, OnInit, OnDestroy {
   @Input() id: string = '';
+  @Input() type: string = 'input';
   @Input() set isDragged(value: boolean) {
     this._isDragged = value;
   }
@@ -64,8 +67,12 @@ export class BaseFormBlockComponent implements OnChanges {
   protected _isDragged = false;
   protected _isSelected = false;
   protected tempLabel: string = '';
+  private destroy$ = new Subject<void>();
 
-  constructor(protected elementRef: ElementRef) {}
+  constructor(
+    protected elementRef: ElementRef,
+    private elementSelectionService: ElementSelectionService
+  ) {}
 
   // Computed properties for layout styling
   get isAutoExpand(): boolean {
@@ -106,6 +113,20 @@ export class BaseFormBlockComponent implements OnChanges {
     // Only apply max-height when auto-expand is disabled
     if (this.isAutoExpand) return undefined;
     return this.layout?.maxHeight ? `${this.layout.maxHeight.value}${this.layout.maxHeight.unit}` : undefined;
+  }
+
+  ngOnInit() {
+    // Subscribe to selection changes
+    this.elementSelectionService.selectedElement$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(selectedElement => {
+        this._isSelected = selectedElement?.id === this.id;
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -151,6 +172,14 @@ export class BaseFormBlockComponent implements OnChanges {
     
     // If it's not a label click or we're already editing, proceed with normal click handling
     if (!this.isEditingLabel) {
+      // Select this element
+      this.elementSelectionService.selectElement({
+        id: this.id,
+        type: this.type as any,
+        label: this.label || '',
+        name: this.id,
+        required: this.required
+      });
       this.elementClick.emit(event);
     }
     event.stopPropagation();

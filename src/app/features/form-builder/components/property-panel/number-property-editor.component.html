@@ -1,9 +1,0 @@
-<nz-input-number 
-  [(ngModel)]="currentValue" 
-  [nzMin]="property.min"
-  [nzMax]="property.max"
-  [nzStep]="property.step || 1"
-  [nzSize]="'small'"
-  (ngModelChange)="onValueChange($event)"
-  [nzDisabled]="property.disabled || false"
-/>

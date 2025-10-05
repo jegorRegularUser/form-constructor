@@ -1,5 +1,6 @@
 <app-base-form-block
   [id]="id"
+  [type]="'button'"
   [isDragged]="isDragged"
   [isSelected]="isSelected"
   [layout]="layout"
@@ -8,7 +9,8 @@
   (dragHandleMouseDown)="onDragHandleMouseDown($event)"
   (elementClick)="elementClick.emit($event)"
   (deleteElement)="deleteElement.emit($event)"
-  (duplicateElement)="duplicateElement.emit($event)">
+  (duplicateElement)="duplicateElement.emit($event)"
+  (openSettings)="openSettings.emit($event)">
   
   <div class="button-wrapper">
     <button

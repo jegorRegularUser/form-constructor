@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { BaseFormBlockComponent } from './base-form-block.component';
 import { DragHandleComponent } from './drag-handle.component';
 import { CommonModule } from '@angular/common';
@@ -11,8 +11,10 @@ import { NzStatus } from 'ng-zorro-antd/core/types';
 import { PlaceholderStyle } from '../../../core/models/element-properties.model';
 import { FormElementProperties } from '../../../core/models/element-properties.model';
 import { ElementStateService } from '../../../core/services/element-state.service';
+import { ElementSelectionService } from '../../../core/services/element-selection.service';
 import { FormService } from '../../../core/services/form.service';
 import { FormValidationError } from '../../../core/services/form.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-input',
@@ -77,7 +79,7 @@ import { FormValidationError } from '../../../core/services/form.service';
     }
   `]
 })
-export class InputComponent extends BaseFormBlockComponent implements OnChanges {
+export class InputComponent extends BaseFormBlockComponent implements OnChanges, OnDestroy {
   @Input() value: string = '';
   @Input() placeholder: string = 'Enter text...';
   @Input() placeholderStyle?: PlaceholderStyle;
@@ -88,20 +90,36 @@ export class InputComponent extends BaseFormBlockComponent implements OnChanges 
   @Input() validationStatus: NzStatus = '';
   @Input() properties?: FormElementProperties;
   
+  @Output() override openSettings = new EventEmitter<string>();
+  
   // Form validation
   validationErrors: FormValidationError[] = [];
+  
+  private propertiesSubscription?: Subscription;
   
   constructor(
     elementRef: ElementRef,
     private elementStateService: ElementStateService,
-    private formService: FormService
+    private formService: FormService,
+    elementSelectionService: ElementSelectionService
   ) {
-    super(elementRef);
+    super(elementRef, elementSelectionService);
     
     // Subscribe to form validation results
     this.formService.formValidationResult$.subscribe(result => {
       this.updateValidationErrors(result);
     });
+    
+    // Subscribe to properties changes from state service
+    if (this.properties && this.properties.id) {
+      this.propertiesSubscription = this.elementStateService.formState$.subscribe(state => {
+        if (this.properties?.id && state.elementProperties[this.properties.id]) {
+          const updatedProperties = state.elementProperties[this.properties.id];
+          this.properties = { ...this.properties, ...updatedProperties };
+          this.updateFromProperties();
+        }
+      });
+    }
   }
   
   override ngOnChanges(changes: SimpleChanges): void {
@@ -152,7 +170,7 @@ export class InputComponent extends BaseFormBlockComponent implements OnChanges 
   // Handle label edit end event
   onLabelEditEnd(newLabel: string): void {
     this.finishLabelEdit(newLabel);
-    // Update properties to ensure consistency with property panel
+    // Update properties
     if (this.properties) {
       this.properties.label = newLabel;
       // Update element state
@@ -368,6 +386,13 @@ export class InputComponent extends BaseFormBlockComponent implements OnChanges 
     this.validationStatus = this.validationErrors.length > 0 ? 'error' : '';
   }
   
+  override ngOnDestroy(): void {
+    if (this.propertiesSubscription) {
+      this.propertiesSubscription.unsubscribe();
+    }
+    super.ngOnDestroy();
+  }
+
   /**
    * Get validation error message
    */
