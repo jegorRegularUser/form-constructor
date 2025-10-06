@@ -8,8 +8,7 @@
   transition: all 0.2s ease;
   background-color: #fff;
   border: 1px solid transparent;
-  /* Default to auto-expand (full width) */
-  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-block-content {
@@ -18,9 +17,65 @@
   min-height: 32px;
 }
 
-/* When auto-expand is disabled, respect the specified width */
-.form-block-wrapper:not(.auto-expand) {
-  width: auto;
+/* Auto-expand behavior (default) */
+.form-block-wrapper.auto-expand {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  
+  /* Reset individual dimension styles */
+  .input-field,
+  .select-field,
+  .textarea-field,
+  .button-field {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Static size behavior */
+.form-block-wrapper.static-size {
+  display: inline-block;
+  
+  /* Allow individual dimension styles to be applied via inline styles */
+  .input-field,
+  .select-field,
+  .textarea-field,
+  .button-field {
+    box-sizing: border-box;
+  }
+}
+
+/* Ensure form elements respect container dimensions */
+.input-field,
+.select-field,
+.textarea-field,
+.button-field {
+  box-sizing: border-box;
+  
+  .auto-expand & {
+    width: 100% !important;
+  }
+  
+  .static-size & {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Specific element type adjustments */
+.select-element,
+.input-element,
+.textarea-element,
+.button-element {
+  &.auto-expand {
+    width: 100%;
+  }
+  
+  &.static-size {
+    display: inline-block;
+  }
 }
 
 /* Selected state */

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef, OnChanges, SimpleChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -57,11 +57,12 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
   
   constructor(
     elementRef: ElementRef,
-    private elementStateService: ElementStateService,
+    elementStateService: ElementStateService,
     private formService: FormService,
-    elementSelectionService: ElementSelectionService
+    elementSelectionService: ElementSelectionService,
+    cdr: ChangeDetectorRef
   ) {
-    super(elementRef, elementSelectionService);
+    super(elementRef, elementSelectionService, elementStateService, cdr);
     
     // Subscribe to form validation results
     this.formService.formValidationResult$.subscribe(result => {
@@ -72,33 +73,18 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
   override ngOnInit(): void {
     super.ngOnInit();
     this.updateFromProperties();
-    
-    // Subscribe to properties changes from state service
-    if (this.properties && this.properties.id) {
-      this.propertiesSubscription = this.elementStateService.formState$.subscribe(state => {
-        if (this.properties?.id && state.elementProperties[this.properties.id]) {
-          // Update properties from state service
-          const updatedProperties = state.elementProperties[this.properties.id];
-          this.properties = { ...this.properties, ...updatedProperties };
-          this.updateFromProperties();
-        }
-      });
-    }
   }
   
   override ngOnChanges(changes: SimpleChanges): void {
     if (changes['properties']) {
       this.updateFromProperties();
     }
-    
-    // Initialize element state if properties are provided
-    if (this.properties && this.properties.id) {
-      this.elementStateService.updateElementProperties(this.properties.id, this.properties);
-    }
   }
   
   private updateFromProperties(): void {
     if (!this.properties) return;
+    
+    console.log('Updating from properties:', this.properties);
     
     // Extract properties from the input properties object
     this.label = this.properties.label || '';
@@ -118,89 +104,13 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
       this.valueChange.emit(this.value);
     }
     
-    // Update layout properties
-    this.updateLayoutProperties();
+    // Update layout from properties - HostBinding will automatically apply styles
+    this.layout = (this.properties as any).layout || {};
+    
+    console.log('Final layout:', this.layout);
   }
   
-  private updateLayoutProperties(): void {
-    if (!this.properties) return;
-    
-    const layout = (this.properties as any).layout;
-    if (!layout) return;
-    
-    const hostElement = this.elementRef.nativeElement;
-    
-    // Check auto-expand property
-    const isAutoExpand = layout.autoExpand !== false; // Default to true if not specified
-    
-    // Apply width properties only when auto-expand is disabled
-    if (!isAutoExpand) {
-      if (layout.width) {
-        const widthValue = typeof layout.width === 'object'
-          ? `${layout.width.value}${layout.width.unit}`
-          : layout.width;
-        hostElement.style.width = widthValue;
-      }
-      
-      if (layout.minWidth) {
-        const minWidthValue = typeof layout.minWidth === 'object'
-          ? `${layout.minWidth.value}${layout.minWidth.unit}`
-          : layout.minWidth;
-        hostElement.style.minWidth = minWidthValue;
-      }
-      
-      if (layout.maxWidth) {
-        const maxWidthValue = typeof layout.maxWidth === 'object'
-          ? `${layout.maxWidth.value}${layout.maxWidth.unit}`
-          : layout.maxWidth;
-        hostElement.style.maxWidth = maxWidthValue;
-      }
-    } else {
-      // Reset width styles when auto-expand is enabled
-      hostElement.style.width = '';
-      hostElement.style.minWidth = '';
-      hostElement.style.maxWidth = '';
-    }
-    
-    // Apply height properties only when auto-expand is disabled
-    if (!isAutoExpand) {
-      if (layout.height) {
-        const heightValue = typeof layout.height === 'object'
-          ? `${layout.height.value}${layout.height.unit}`
-          : layout.height;
-        hostElement.style.height = heightValue;
-      }
-      
-      if (layout.minHeight) {
-        const minHeightValue = typeof layout.minHeight === 'object'
-          ? `${layout.minHeight.value}${layout.minHeight.unit}`
-          : layout.minHeight;
-        hostElement.style.minHeight = minHeightValue;
-      }
-      
-      if (layout.maxHeight) {
-        const maxHeightValue = typeof layout.maxHeight === 'object'
-          ? `${layout.maxHeight.value}${layout.maxHeight.unit}`
-          : layout.maxHeight;
-        hostElement.style.maxHeight = maxHeightValue;
-      }
-    } else {
-      // Reset height styles when auto-expand is enabled
-      hostElement.style.height = '';
-      hostElement.style.minHeight = '';
-      hostElement.style.maxHeight = '';
-    }
-    
-    // Add or remove auto-expand class based on the property
-    if (isAutoExpand) {
-      hostElement.classList.add('auto-expand');
-    } else {
-      hostElement.classList.remove('auto-expand');
-    }
-    
-    // Update the layout property to ensure consistency with the base component
-    this.layout = layout;
-  }
+
   
   /**
    * Handle value change
@@ -328,8 +238,25 @@ export class SelectElementComponent extends BaseFormBlockComponent implements On
     }
   }
   
+  protected override onElementStateChanged(elementState: any): void {
+    console.log('Updating from element state:', elementState);
+    
+    // Update properties from element state
+    if (elementState.label !== undefined) this.label = elementState.label;
+    if (elementState.required !== undefined) this.required = elementState.required;
+    if (elementState.disabled !== undefined) this.disabled = elementState.disabled;
+    if (elementState.placeholder !== undefined) this.placeholder = elementState.placeholder;
+    if (elementState.description !== undefined) this.description = elementState.description;
+    if (elementState.options !== undefined) this.options = elementState.options;
+    
+    // Update size and other select-specific properties
+    if (elementState.size !== undefined) this.size = elementState.size;
+    if (elementState.allowClear !== undefined) this.allowClear = elementState.allowClear;
+    if (elementState.showSearch !== undefined) this.showSearch = elementState.showSearch;
+    if (elementState.loading !== undefined) this.loading = elementState.loading;
+  }
+
   override ngOnDestroy(): void {
-    // Clean up subscription
     if (this.propertiesSubscription) {
       this.propertiesSubscription.unsubscribe();
     }

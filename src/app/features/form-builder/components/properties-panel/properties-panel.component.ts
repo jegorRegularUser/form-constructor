@@ -12,16 +12,19 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
+
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 
 import { ElementSelectionService } from '../../../../core/services/element-selection.service';
 import { ElementStateService } from '../../../../core/services/element-state.service';
 import { PropertySection, PropertyGroup, PropertyDefinition } from '../../../../core/models/property-schema.model';
 import { PropertyType, DimensionUnit } from '../../../../core/enums/property-type.enum';
 import { getElementPropertySections } from '../../../../core/configs/element-property-sections';
+import { DataSetsService, DataSet, OptionItem } from '../../../../core/services/data-sets.service';
 
 @Component({
   selector: 'app-properties-panel',
@@ -41,9 +44,11 @@ import { getElementPropertySections } from '../../../../core/configs/element-pro
     NzCollapseModule,
     NzIconModule,
 
+
     NzTagModule,
     NzEmptyModule,
-    NzToolTipModule
+    NzToolTipModule,
+    NzRadioModule
   ],
   templateUrl: './properties-panel.component.html',
   styleUrls: ['./properties-panel.component.scss']
@@ -59,13 +64,20 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
   // Make DimensionUnit available in template
   DimensionUnit = DimensionUnit;
 
+  // Data sets properties
+  dataSets: DataSet[] = [];
+  optionsDataSets: DataSet[] = [];
+  optionsSource: 'manual' | 'dataset' = 'manual';
+  selectedDataSetId: string = '';
+
   private formUpdateInProgress = false;
 
   constructor(
     private elementSelectionService: ElementSelectionService,
     private elementStateService: ElementStateService,
     private fb: FormBuilder,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private dataSetsService: DataSetsService
   ) {
     this.propertiesForm = this.fb.group({});
   }
@@ -92,6 +104,12 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
         this.syncFormWithElementProperties(currentElement);
       }
     });
+
+    // Subscribe to data sets
+    this.dataSetsService.dataSets$.subscribe(dataSets => {
+      this.dataSets = dataSets;
+      this.optionsDataSets = dataSets.filter(set => set.type === 'options');
+    });
   }
 
   ngOnDestroy() {}
@@ -103,6 +121,8 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
     // Get current element properties
     const elementState = this.elementStateService.getElementState(elementId);
     const currentProperties = elementState || {};
+    
+    console.log('Loading properties for element:', elementId, currentProperties);
     
     // Initialize form with current element properties
     this.initializeForm(currentProperties);
@@ -118,7 +138,16 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
           // Get value from current properties or use default
           const value = this.getPropertyValue(property, currentProperties);
           const disabled = property.disabled || false;
-          formGroup[property.name] = [{ value, disabled }];
+          
+          // For layout properties, check if they exist in currentProperties.layout
+          let actualValue = value;
+          if (this.isLayoutProperty(property.name) && currentProperties.layout) {
+            actualValue = currentProperties.layout[property.name] !== undefined 
+              ? currentProperties.layout[property.name] 
+              : value;
+          }
+          
+          formGroup[property.name] = [{ value: actualValue, disabled }];
         });
       });
     });
@@ -131,6 +160,8 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
         this.onPropertiesChange(values);
       }
     });
+
+    console.log('Form initialized with values:', formGroup);
   }
 
   private getPropertyValue(property: PropertyDefinition, currentProperties: any): any {
@@ -183,16 +214,64 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
   private onPropertiesChange(values: any) {
     if (!this.selectedElementId || this.formUpdateInProgress) return;
 
+    console.log('Properties changed:', values);
+
     // Filter out undefined values and keep only changed properties
     const changedProperties: any = {};
+    const layoutProperties = ['autoExpand', 'width', 'height', 'minWidth', 'maxWidth', 'minHeight', 'maxHeight'];
+    
+    // Separate layout properties from regular properties
+    const layout: any = {};
+    let hasLayoutChanges = false;
+
     Object.keys(values).forEach(key => {
       if (values[key] !== undefined && values[key] !== null) {
-        changedProperties[key] = values[key];
+        if (layoutProperties.includes(key)) {
+          layout[key] = values[key];
+          hasLayoutChanges = true;
+        } else {
+          changedProperties[key] = values[key];
+        }
       }
     });
 
+    // If we have layout changes, add them to changedProperties as a layout object
+    if (hasLayoutChanges) {
+      changedProperties.layout = layout;
+    }
+
+    console.log('Updating element with:', changedProperties);
+
     // Update element properties
     this.elementStateService.updateElementProperties(this.selectedElementId, changedProperties);
+  }
+
+  private isLayoutProperty(propertyName: string): boolean {
+    const layoutProperties = ['autoExpand', 'width', 'height', 'minWidth', 'maxWidth', 'minHeight', 'maxHeight'];
+    return layoutProperties.includes(propertyName);
+  }
+
+  /**
+   * Check if a property should be displayed based on its condition
+   */
+  shouldDisplayProperty(property: PropertyDefinition): boolean {
+    if (!property.condition) return true;
+
+    const condition = Array.isArray(property.condition) ? property.condition[0] : property.condition;
+    const formValue = this.propertiesForm.getRawValue();
+    
+    switch (condition.operator) {
+      case 'equals':
+        return formValue[condition.field] === condition.value;
+      case 'notEquals':
+        return formValue[condition.field] !== condition.value;
+      case 'exists':
+        return !!formValue[condition.field];
+      case 'notExists':
+        return !formValue[condition.field];
+      default:
+        return true;
+    }
   }
 
   // Helper methods for template
@@ -276,5 +355,43 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
   // Check if property has nested structure
   isNestedProperty(propertyName: string): boolean {
     return propertyName.includes('.');
+  }
+
+  // Data sets methods
+  getOptionsFromDataSet(dataSetId: string): OptionItem[] {
+    const dataSet = this.dataSetsService.getDataSet(dataSetId);
+    return dataSet?.data || [];
+  }
+
+  onOptionsSourceChange(propertyName: string, sourceType: 'manual' | 'dataset', dataSetId?: string): void {
+    this.optionsSource = sourceType;
+    if (sourceType === 'dataset' && dataSetId) {
+      this.selectedDataSetId = dataSetId;
+      const options = this.getOptionsFromDataSet(dataSetId);
+      this.propertiesForm.get(propertyName)?.setValue(options);
+    } else if (sourceType === 'manual') {
+      this.propertiesForm.get(propertyName)?.setValue([]);
+    }
+  }
+
+  addManualOption(propertyName: string): void {
+    const currentOptions = this.propertiesForm.get(propertyName)?.value || [];
+    const newOption = { label: 'New Option', value: `option_${Date.now()}`, disabled: false };
+    this.propertiesForm.get(propertyName)?.setValue([...currentOptions, newOption]);
+  }
+
+  removeManualOption(propertyName: string, index: number): void {
+    const currentOptions = this.propertiesForm.get(propertyName)?.value || [];
+    currentOptions.splice(index, 1);
+    this.propertiesForm.get(propertyName)?.setValue([...currentOptions]);
+  }
+
+  updateOptionField(propertyName: string, index: number, field: string, value: any): void {
+    const currentOptions = this.propertiesForm.get(propertyName)?.value || [];
+    if (currentOptions[index]) {
+      currentOptions[index][field] = value;
+      this.propertiesForm.get(propertyName)?.setValue([...currentOptions]);
+      this.propertiesForm.get(propertyName)?.markAsDirty();
+    }
   }
 }

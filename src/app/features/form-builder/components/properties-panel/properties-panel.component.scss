@@ -127,6 +127,10 @@
             &.has-tooltip {
               cursor: help;
             }
+            
+            &.hidden {
+              display: none;
+            }
 
             .form-field {
               display: flex;
@@ -144,6 +148,57 @@
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+                
+                .auto-expand-info {
+                  background: #f0f7ff;
+                  border: 1px solid #d0e3ff;
+                  border-radius: 4px;
+                  padding: 8px 12px;
+                  margin-top: 8px;
+                  
+                  small {
+                    color: #1890ff;
+                    font-size: 11px;
+                    line-height: 1.3;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                  }
+                }
+              }
+
+              .options-editor {
+                .options-source-selector {
+                  margin-bottom: 12px;
+                }
+
+                .manual-options {
+                  .option-item {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr auto auto;
+                    gap: 8px;
+                    margin-bottom: 8px;
+                    align-items: center;
+                  }
+                }
+
+                .dataset-options {
+                  .options-preview {
+                    margin-top: 12px;
+                    
+                    h4 {
+                      font-size: 12px;
+                      margin-bottom: 8px;
+                      color: #666;
+                    }
+
+                    .preview-options {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 4px;
+                    }
+                  }
+                }
               }
 
               &.dimension-field {
@@ -153,6 +208,16 @@
                   
                   nz-input-number, nz-select {
                     flex: 1;
+                  }
+                }
+                
+                .dimension-info {
+                  margin-top: 4px;
+                  
+                  small {
+                    color: #666;
+                    font-size: 11px;
+                    line-height: 1.2;
                   }
                 }
               }

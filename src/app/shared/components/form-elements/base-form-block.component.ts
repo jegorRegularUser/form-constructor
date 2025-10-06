@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, HostBinding, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, ElementRef, HostBinding, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -6,6 +6,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { DragHandleComponent } from './drag-handle.component';
 import { DimensionValue, LayoutProperties } from '../../../core/models/element-properties.model';
 import { ElementSelectionService } from '../../../core/services/element-selection.service';
+import { ElementStateService } from '../../../core/services/element-state.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -25,12 +26,7 @@ import { Subject, takeUntil } from 'rxjs';
     '[class.dragged]': '_isDragged',
     '[class.selected]': '_isSelected',
     '[class.auto-expand]': 'isAutoExpand',
-    '[style.width]': 'elementWidth',
-    '[style.height]': 'elementHeight',
-    '[style.min-width]': 'elementMinWidth',
-    '[style.max-width]': 'elementMaxWidth',
-    '[style.min-height]': 'elementMinHeight',
-    '[style.max-height]': 'elementMaxHeight'
+    '[class.static-size]': '!isAutoExpand'
   }
 })
 export class BaseFormBlockComponent implements OnChanges, OnInit, OnDestroy {
@@ -71,48 +67,87 @@ export class BaseFormBlockComponent implements OnChanges, OnInit, OnDestroy {
 
   constructor(
     protected elementRef: ElementRef,
-    private elementSelectionService: ElementSelectionService
+    private elementSelectionService: ElementSelectionService,
+    protected elementStateService: ElementStateService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  // HostBinding for styles - replaces manual style management
+  @HostBinding('style.width') get hostWidth(): string | null {
+    const width = this.isAutoExpand ? null : (this.elementWidth || null);
+    console.log(`HostBinding width for ${this.id}:`, width, 'autoExpand:', this.isAutoExpand);
+    return width;
+  }
+
+  @HostBinding('style.height') get hostHeight(): string | null {
+    const height = this.isAutoExpand ? null : (this.elementHeight || null);
+    console.log(`HostBinding height for ${this.id}:`, height, 'autoExpand:', this.isAutoExpand);
+    return height;
+  }
+
+  @HostBinding('style.min-width') get hostMinWidth(): string | null {
+    return this.elementMinWidth || null;
+  }
+
+  @HostBinding('style.max-width') get hostMaxWidth(): string | null {
+    return this.elementMaxWidth || null;
+  }
+
+  @HostBinding('style.min-height') get hostMinHeight(): string | null {
+    return this.elementMinHeight || null;
+  }
+
+  @HostBinding('style.max-height') get hostMaxHeight(): string | null {
+    return this.elementMaxHeight || null;
+  }
 
   // Computed properties for layout styling
   get isAutoExpand(): boolean {
-    return this.layout?.autoExpand !== false; // Default to true if not specified
+    if (!this.layout) return true;
+    if (this.layout.autoExpand === false) return false;
+    return true;
   }
 
   get elementWidth(): string | undefined {
-    // Only apply width when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.width ? `${this.layout.width.value}${this.layout.width.unit}` : undefined;
+    const width = this.layout?.width ? this.formatDimension(this.layout.width) : undefined;
+    console.log(`elementWidth for ${this.id}:`, width, 'layout.width:', this.layout?.width);
+    return width;
   }
 
   get elementHeight(): string | undefined {
-    // Only apply height when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.height ? `${this.layout.height.value}${this.layout.height.unit}` : undefined;
+    const height = this.layout?.height ? this.formatDimension(this.layout.height) : undefined;
+    console.log(`elementHeight for ${this.id}:`, height, 'layout.height:', this.layout?.height);
+    return height;
   }
 
   get elementMinWidth(): string | undefined {
-    // Only apply min-width when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.minWidth ? `${this.layout.minWidth.value}${this.layout.minWidth.unit}` : undefined;
+    return this.layout?.minWidth ? this.formatDimension(this.layout.minWidth) : undefined;
   }
 
   get elementMaxWidth(): string | undefined {
-    // Only apply max-width when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.maxWidth ? `${this.layout.maxWidth.value}${this.layout.maxWidth.unit}` : undefined;
+    return this.layout?.maxWidth ? this.formatDimension(this.layout.maxWidth) : undefined;
   }
 
   get elementMinHeight(): string | undefined {
-    // Only apply min-height when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.minHeight ? `${this.layout.minHeight.value}${this.layout.minHeight.unit}` : undefined;
+    return this.layout?.minHeight ? this.formatDimension(this.layout.minHeight) : undefined;
   }
 
   get elementMaxHeight(): string | undefined {
-    // Only apply max-height when auto-expand is disabled
-    if (this.isAutoExpand) return undefined;
-    return this.layout?.maxHeight ? `${this.layout.maxHeight.value}${this.layout.maxHeight.unit}` : undefined;
+    return this.layout?.maxHeight ? this.formatDimension(this.layout.maxHeight) : undefined;
+  }
+
+  private formatDimension(dimension: any): string {
+    if (!dimension) return '';
+    
+    if (typeof dimension === 'object' && dimension.value !== undefined && dimension.unit) {
+      return `${dimension.value}${dimension.unit}`;
+    }
+    
+    if (typeof dimension === 'string') {
+      return dimension;
+    }
+    
+    return String(dimension);
   }
 
   ngOnInit() {
@@ -121,6 +156,29 @@ export class BaseFormBlockComponent implements OnChanges, OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(selectedElement => {
         this._isSelected = selectedElement?.id === this.id;
+      });
+
+    // Subscribe to element state changes to update layout
+    this.elementStateService.formState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(state => {
+        const elementState = state.elementProperties[this.id];
+        if (elementState) {
+          // Update layout when element state changes
+          if (elementState.layout) {
+            this.layout = { ...elementState.layout };
+            console.log('Layout updated from state for', this.id, ':', this.layout);
+            console.log('isAutoExpand:', this.isAutoExpand);
+            console.log('elementWidth:', this.elementWidth);
+            console.log('elementHeight:', this.elementHeight);
+            
+            // Force change detection to update HostBinding
+            this.cdr.detectChanges();
+          }
+          
+          // Notify child components of state changes
+          this.onElementStateChanged(elementState);
+        }
       });
   }
 
@@ -131,8 +189,16 @@ export class BaseFormBlockComponent implements OnChanges, OnInit, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['layout']) {
-      // React to layout changes if needed
+      console.log('Layout changed:', this.layout);
+      // HostBinding automatically updates styles when layout changes
     }
+  }
+
+  // REMOVED: updateElementStyles() - now handled by HostBinding
+  
+  // Override this method in child components to handle state changes
+  protected onElementStateChanged(elementState: any): void {
+    // Base implementation does nothing - child components can override
   }
 
   getNativeElement(): HTMLElement {

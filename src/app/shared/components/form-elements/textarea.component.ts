@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, OnChanges, SimpleChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { BaseFormBlockComponent } from './base-form-block.component';
 
 import { CommonModule } from '@angular/common';
@@ -111,65 +111,31 @@ export class TextareaComponent extends BaseFormBlockComponent implements OnChang
   
   constructor(
     elementRef: ElementRef,
-    private elementStateService: ElementStateService,
+    elementStateService: ElementStateService,
     private formService: FormService,
-    elementSelectionService: ElementSelectionService
+    elementSelectionService: ElementSelectionService,
+    cdr: ChangeDetectorRef
   ) {
-    super(elementRef, elementSelectionService);
+    super(elementRef, elementSelectionService, elementStateService, cdr);
     
     // Subscribe to form validation results
     this.formService.formValidationResult$.subscribe(result => {
       this.updateValidationErrors(result);
     });
-    
-    // Subscribe to properties changes from state service
-    if (this.properties && this.properties.id) {
-      this.propertiesSubscription = this.elementStateService.formState$.subscribe(state => {
-        if (this.properties?.id && state.elementProperties[this.properties.id]) {
-          const updatedProperties = state.elementProperties[this.properties.id];
-          this.properties = { ...this.properties, ...updatedProperties };
-          this.updateFromProperties();
-        }
-      });
-    }
   }
   
+  override ngOnInit(): void {
+    super.ngOnInit();
+    this.updateFromProperties();
+  }
+
   override ngOnChanges(changes: SimpleChanges): void {
     if (changes['placeholderStyle']) {
       this.updatePlaceholderStyle();
     }
     
-    if (changes['placeholder']) {
-      // Update the placeholder text in the textarea field
-      const textareaElement = this.elementRef.nativeElement.querySelector('.textarea-field');
-      if (textareaElement) {
-        textareaElement.placeholder = this.placeholder;
-      }
-    }
-    
-    if (changes['required']) {
-      // Update the required attribute on the textarea field
-      const textareaElement = this.elementRef.nativeElement.querySelector('.textarea-field');
-      if (textareaElement) {
-        textareaElement.required = this.required;
-      }
-    }
-    
-    if (changes['readOnly']) {
-      // Update the readOnly attribute on the textarea field
-      const textareaElement = this.elementRef.nativeElement.querySelector('.textarea-field');
-      if (textareaElement) {
-        textareaElement.readOnly = this.readOnly;
-      }
-    }
-    
     if (changes['properties']) {
       this.updateFromProperties();
-    }
-    
-    // Initialize element state if properties are provided
-    if (this.properties && this.properties.id) {
-      this.elementStateService.updateElementProperties(this.properties.id, this.properties);
     }
   }
   
@@ -199,133 +165,43 @@ export class TextareaComponent extends BaseFormBlockComponent implements OnChang
     if (!this.properties) return;
     
     // Update component properties from the properties object
-    if (this.properties.label !== undefined) {
-      this.label = this.properties.label;
-    }
-    
-    if (this.properties.placeholder !== undefined) {
-      this.placeholder = this.properties.placeholder;
-    }
-    
-    if (this.properties.defaultValue !== undefined) {
-      this.value = this.properties.defaultValue;
-    }
-    
-    if (this.properties.required !== undefined) {
-      this.required = this.properties.required;
-    }
-    
-    if (this.properties.readOnly !== undefined) {
-      this.readOnly = this.properties.readOnly;
-    }
-    
-    if (this.properties.disabled !== undefined) {
-      this.disabled = this.properties.disabled;
-    }
-    
-    if ((this.properties as any).rows !== undefined) {
-      this.rows = (this.properties as any).rows;
-    }
-    
-    if ((this.properties as any).maxRows !== undefined) {
-      this.maxRows = (this.properties as any).maxRows;
-    }
-    
-    if ((this.properties as any).showCount !== undefined) {
-      this.showCount = (this.properties as any).showCount;
-    }
-    
-    if ((this.properties as any).maxLength !== undefined) {
-      this.maxLength = (this.properties as any).maxLength;
-    }
+    this.label = this.properties.label || '';
+    this.placeholder = this.properties.placeholder || 'Enter text here...';
+    this.value = this.properties.defaultValue || '';
+    this.required = this.properties.required || false;
+    this.readOnly = this.properties.readOnly || false;
+    this.disabled = this.properties.disabled || false;
+    this.rows = (this.properties as any).rows || 3;
+    this.maxRows = (this.properties as any).maxRows || 6;
+    this.showCount = (this.properties as any).showCount || false;
+    this.maxLength = (this.properties as any).maxLength || 0;
     
     if ((this.properties as any).placeholderStyle !== undefined) {
       this.placeholderStyle = (this.properties as any).placeholderStyle;
       this.updatePlaceholderStyle();
     }
     
-    // Update layout properties
-    this.updateLayoutProperties();
+    // Update layout from properties - HostBinding will automatically apply styles
+    this.layout = (this.properties as any).layout || {};
   }
-  
-  private updateLayoutProperties(): void {
-    if (!this.properties) return;
+
+  protected override onElementStateChanged(elementState: any): void {
+    // Update properties from element state
+    if (elementState.label !== undefined) this.label = elementState.label;
+    if (elementState.placeholder !== undefined) this.placeholder = elementState.placeholder;
+    if (elementState.defaultValue !== undefined) this.value = elementState.defaultValue;
+    if (elementState.required !== undefined) this.required = elementState.required;
+    if (elementState.readOnly !== undefined) this.readOnly = elementState.readOnly;
+    if (elementState.disabled !== undefined) this.disabled = elementState.disabled;
+    if (elementState.rows !== undefined) this.rows = elementState.rows;
+    if (elementState.maxRows !== undefined) this.maxRows = elementState.maxRows;
+    if (elementState.showCount !== undefined) this.showCount = elementState.showCount;
+    if (elementState.maxLength !== undefined) this.maxLength = elementState.maxLength;
     
-    const layout = (this.properties as any).layout;
-    if (!layout) return;
-    
-    const hostElement = this.elementRef.nativeElement;
-    
-    // Check auto-expand property
-    const isAutoExpand = layout.autoExpand !== false; // Default to true if not specified
-    
-    // Apply width properties only when auto-expand is disabled
-    if (!isAutoExpand) {
-      if (layout.width) {
-        const widthValue = typeof layout.width === 'object'
-          ? `${layout.width.value}${layout.width.unit}`
-          : layout.width;
-        hostElement.style.width = widthValue;
-      }
-      
-      if (layout.minWidth) {
-        const minWidthValue = typeof layout.minWidth === 'object'
-          ? `${layout.minWidth.value}${layout.minWidth.unit}`
-          : layout.minWidth;
-        hostElement.style.minWidth = minWidthValue;
-      }
-      
-      if (layout.maxWidth) {
-        const maxWidthValue = typeof layout.maxWidth === 'object'
-          ? `${layout.maxWidth.value}${layout.maxWidth.unit}`
-          : layout.maxWidth;
-        hostElement.style.maxWidth = maxWidthValue;
-      }
-    } else {
-      // Reset width styles when auto-expand is enabled
-      hostElement.style.width = '';
-      hostElement.style.minWidth = '';
-      hostElement.style.maxWidth = '';
+    if (elementState.placeholderStyle !== undefined) {
+      this.placeholderStyle = elementState.placeholderStyle;
+      this.updatePlaceholderStyle();
     }
-    
-    // Apply height properties only when auto-expand is disabled
-    if (!isAutoExpand) {
-      if (layout.height) {
-        const heightValue = typeof layout.height === 'object'
-          ? `${layout.height.value}${layout.height.unit}`
-          : layout.height;
-        hostElement.style.height = heightValue;
-      }
-      
-      if (layout.minHeight) {
-        const minHeightValue = typeof layout.minHeight === 'object'
-          ? `${layout.minHeight.value}${layout.minHeight.unit}`
-          : layout.minHeight;
-        hostElement.style.minHeight = minHeightValue;
-      }
-      
-      if (layout.maxHeight) {
-        const maxHeightValue = typeof layout.maxHeight === 'object'
-          ? `${layout.maxHeight.value}${layout.maxHeight.unit}`
-          : layout.maxHeight;
-        hostElement.style.maxHeight = maxHeightValue;
-      }
-    } else {
-      // Reset height styles when auto-expand is enabled
-      hostElement.style.height = '';
-      hostElement.style.minHeight = '';
-      hostElement.style.maxHeight = '';
-    }
-    
-    // Add or remove auto-expand class based on the property
-    if (isAutoExpand) {
-      hostElement.classList.add('auto-expand');
-    } else {
-      hostElement.classList.remove('auto-expand');
-    }
-    
-    // Update the layout property to ensure consistency with the base component
-    this.layout = layout;
   }
   
   getPlaceholderStyle(): Record<string, string> {

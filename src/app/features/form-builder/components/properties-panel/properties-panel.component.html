@@ -26,6 +26,14 @@
 
   <!-- Panel Content -->
   <div class="panel-content" *ngIf="selectedElementId && !panelCollapsed">
+    <!-- Debug info (можно убрать после отладки) -->
+    <div class="debug-info" style="background: #f0f0f0; padding: 8px; margin: 8px; border-radius: 4px; font-size: 11px;">
+      <strong>Debug:</strong> 
+      Element: {{selectedElementId}} | 
+      Type: {{elementType}} | 
+      AutoExpand: {{propertiesForm.get('autoExpand')?.value}}
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar">
       <button 
@@ -54,14 +62,15 @@
               class="property-group-panel"
             >
               <div class="property-fields" [formGroup]="propertiesForm">
-                <div 
-                  *ngFor="let property of group.properties" 
-                  class="property-field"
-                  [class.has-tooltip]="property.description"
-                  nz-tooltip
-                  [nzTooltipTitle]="property.description"
-                  nzTooltipPlacement="topLeft"
-                >
+                <ng-container *ngFor="let property of group.properties">
+                  <div 
+                    *ngIf="shouldDisplayProperty(property)"
+                    class="property-field"
+                    [class.has-tooltip]="property.description"
+                    nz-tooltip
+                    [nzTooltipTitle]="property.description"
+                    nzTooltipPlacement="topLeft"
+                  >
                     <!-- Text Field -->
                     <div *ngIf="isTextProperty(property)" class="form-field">
                       <label [for]="property.name">{{ property.label }}</label>
@@ -124,8 +133,10 @@
                       ></nz-color-picker>
                     </div>
 
-                    <!-- Dimension Field (Value + Unit) -->
-                    <div *ngIf="isDimensionProperty(property)" class="form-field dimension-field">
+
+
+                    <!-- Dimension Fields with Unit Selector -->
+                    <div *ngIf="isDimensionProperty(property) && property.name !== 'autoExpand'" class="form-field dimension-field">
                       <label>{{ property.label }}</label>
                       <div class="dimension-controls">
                         <nz-input-number
@@ -135,6 +146,7 @@
                           [nzMin]="property.min"
                           [nzMax]="property.max"
                           [nzStep]="property.step || 1"
+                          [nzPlaceHolder]="property.placeholder || ''"
                           style="width: 60%"
                         ></nz-input-number>
                         <nz-select
@@ -150,17 +162,72 @@
                           ></nz-option>
                         </nz-select>
                       </div>
+                      <div class="dimension-info" *ngIf="property.description">
+                        <small>{{ property.description }}</small>
+                      </div>
+                    </div>
+
+                    <!-- Options Field with Data Sets Support -->
+                    <div *ngIf="property.name === 'options'" class="options-editor">
+                      <label>{{ property.label }}</label>
+                      
+                      <div class="options-source-selector">
+                        <nz-radio-group [(ngModel)]="optionsSource" [ngModelOptions]="{standalone: true}" (ngModelChange)="onOptionsSourceChange(property.name, $event)">
+                          <label nz-radio nzValue="manual">Manual Input</label>
+                          <label nz-radio nzValue="dataset">From Data Set</label>
+                        </nz-radio-group>
+                      </div>
+
+                      <div *ngIf="optionsSource === 'manual'" class="manual-options">
+                        <div class="option-item" *ngFor="let option of propertiesForm.get(property.name)?.value; let i = index">
+                          <input nz-input [(ngModel)]="option.label" [ngModelOptions]="{standalone: true}" placeholder="Label" (ngModelChange)="updateOptionField(property.name, i, 'label', $event)">
+                          <input nz-input [(ngModel)]="option.value" [ngModelOptions]="{standalone: true}" placeholder="Value" (ngModelChange)="updateOptionField(property.name, i, 'value', $event)">
+                          <nz-switch [(ngModel)]="option.disabled" [ngModelOptions]="{standalone: true}" (ngModelChange)="updateOptionField(property.name, i, 'disabled', $event)"></nz-switch>
+                          <button nz-button nzType="text" nzDanger (click)="removeManualOption(property.name, i)">
+                            <span nz-icon nzType="delete"></span>
+                          </button>
+                        </div>
+                        <button nz-button nzType="dashed" (click)="addManualOption(property.name)">
+                          <span nz-icon nzType="plus"></span>
+                          Add Option
+                        </button>
+                      </div>
+
+                      <div *ngIf="optionsSource === 'dataset'" class="dataset-options">
+                        <nz-select
+                          [(ngModel)]="selectedDataSetId"
+                          [ngModelOptions]="{standalone: true}"
+                          (ngModelChange)="onOptionsSourceChange(property.name, 'dataset', $event)"
+                          nzPlaceHolder="Select data set"
+                        >
+                          <nz-option 
+                            *ngFor="let dataSet of optionsDataSets" 
+                            [nzLabel]="dataSet.name" 
+                            [nzValue]="dataSet.id"
+                          ></nz-option>
+                        </nz-select>
+                        
+                        <div class="options-preview" *ngIf="selectedDataSetId">
+                          <h4>Preview:</h4>
+                          <div class="preview-options">
+                            <nz-tag *ngFor="let option of getOptionsFromDataSet(selectedDataSetId)" [nzColor]="option.disabled ? 'default' : 'blue'">
+                              {{ option.label }}
+                            </nz-tag>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Array Field (Basic) -->
-                    <div *ngIf="isArrayProperty(property)" class="form-field">
+                    <div *ngIf="isArrayProperty(property) && property.name !== 'options'" class="form-field">
                       <label>{{ property.label }}</label>
                       <div class="array-field-info">
                         <nz-tag nzColor="blue">Array Property</nz-tag>
                         <small>{{ property.description || 'Use advanced editor for array properties' }}</small>
                       </div>
                     </div>
-                </div>
+                  </div>
+                </ng-container>
               </div>
             </nz-collapse-panel>
           </nz-collapse>

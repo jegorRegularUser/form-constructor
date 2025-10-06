@@ -60,15 +60,108 @@ const COMMON_PROPERTIES = {
     defaultValue: false
   } as PropertyDefinition,
   
+  autoExpand: {
+    name: 'autoExpand',
+    type: PropertyType.BOOLEAN,
+    label: 'Auto Expand',
+    description: 'When enabled, the element expands to fill available space',
+    defaultValue: true
+  } as PropertyDefinition,
+  
   width: {
     name: 'width',
     type: PropertyType.DIMENSION,
     label: 'Width',
-    description: 'Width of the element',
+    description: 'Width of the element (applies when auto-expand is disabled)',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT]
+    defaultValue: { value: 100, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
+  } as PropertyDefinition,
+  
+  height: {
+    name: 'height',
+    type: PropertyType.DIMENSION,
+    label: 'Height',
+    description: 'Height of the element (applies when auto-expand is disabled)',
+    min: 0,
+    max: 2000,
+    defaultValue: { value: 100, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
+  } as PropertyDefinition,
+  
+  minWidth: {
+    name: 'minWidth',
+    type: PropertyType.DIMENSION,
+    label: 'Min Width',
+    description: 'Minimum width of the element',
+    min: 0,
+    max: 2000,
+    defaultValue: { value: 0, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
+  } as PropertyDefinition,
+  
+  maxWidth: {
+    name: 'maxWidth',
+    type: PropertyType.DIMENSION,
+    label: 'Max Width',
+    description: 'Maximum width of the element',
+    min: 0,
+    max: 2000,
+    defaultValue: { value: 100, unit: DimensionUnit.PERCENT },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
+  } as PropertyDefinition,
+  
+  minHeight: {
+    name: 'minHeight',
+    type: PropertyType.DIMENSION,
+    label: 'Min Height',
+    description: 'Minimum height of the element',
+    min: 0,
+    max: 2000,
+    defaultValue: { value: 0, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
+  } as PropertyDefinition,
+  
+  maxHeight: {
+    name: 'maxHeight',
+    type: PropertyType.DIMENSION,
+    label: 'Max Height',
+    description: 'Maximum height of the element',
+    min: 0,
+    max: 2000,
+    defaultValue: { value: 100, unit: DimensionUnit.PERCENT },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   } as PropertyDefinition,
   
   customClass: {
@@ -126,7 +219,13 @@ const INPUT_PROPERTY_SECTIONS: PropertySection[] = [
       {
         title: 'Layout',
         properties: [
+          COMMON_PROPERTIES.autoExpand,
           COMMON_PROPERTIES.width,
+          COMMON_PROPERTIES.height,
+          COMMON_PROPERTIES.minWidth,
+          COMMON_PROPERTIES.maxWidth,
+          COMMON_PROPERTIES.minHeight,
+          COMMON_PROPERTIES.maxHeight,
           COMMON_PROPERTIES.disabled
         ]
       },
@@ -207,7 +306,13 @@ const TEXTAREA_PROPERTY_SECTIONS: PropertySection[] = [
       {
         title: 'Layout',
         properties: [
+          COMMON_PROPERTIES.autoExpand,
           COMMON_PROPERTIES.width,
+          COMMON_PROPERTIES.height,
+          COMMON_PROPERTIES.minWidth,
+          COMMON_PROPERTIES.maxWidth,
+          COMMON_PROPERTIES.minHeight,
+          COMMON_PROPERTIES.maxHeight,
           COMMON_PROPERTIES.disabled
         ]
       },
@@ -273,7 +378,13 @@ const SELECT_PROPERTY_SECTIONS: PropertySection[] = [
       {
         title: 'Layout',
         properties: [
+          COMMON_PROPERTIES.autoExpand,
           COMMON_PROPERTIES.width,
+          COMMON_PROPERTIES.height,
+          COMMON_PROPERTIES.minWidth,
+          COMMON_PROPERTIES.maxWidth,
+          COMMON_PROPERTIES.minHeight,
+          COMMON_PROPERTIES.maxHeight,
           COMMON_PROPERTIES.disabled
         ]
       },
@@ -352,7 +463,13 @@ const BUTTON_PROPERTY_SECTIONS: PropertySection[] = [
       {
         title: 'Layout',
         properties: [
+          COMMON_PROPERTIES.autoExpand,
           COMMON_PROPERTIES.width,
+          COMMON_PROPERTIES.height,
+          COMMON_PROPERTIES.minWidth,
+          COMMON_PROPERTIES.maxWidth,
+          COMMON_PROPERTIES.minHeight,
+          COMMON_PROPERTIES.maxHeight,
           COMMON_PROPERTIES.disabled
         ]
       },

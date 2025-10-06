@@ -1,0 +1,145 @@
+<div class="data-sets-manager">
+  <div class="header">
+    <h2>Data Sets Manager</h2>
+    <div class="actions">
+      <button nz-button nzType="primary" (click)="openCreateModal()">
+        <span nz-icon nzType="plus"></span>
+        New Data Set
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <div class="tab-buttons">
+      <button 
+        *ngFor="let type of ['options', 'icons', 'images', 'custom']; let i = index" 
+        nz-button 
+        [nzType]="activeTab === i ? 'primary' : 'default'"
+        (click)="activeTab = i"
+        class="tab-button"
+      >
+        {{ type | titlecase }}
+      </button>
+    </div>
+    
+    <div class="tab-content">
+      <div *ngFor="let type of ['options', 'icons', 'images', 'custom']; let i = index" 
+           [style.display]="activeTab === i ? 'block' : 'none'">
+        <div class="data-sets-grid">
+          <nz-card 
+            *ngFor="let dataSet of dataSets | filterByType: type" 
+            [nzTitle]="dataSet.name"
+            [nzExtra]="cardExtra"
+            class="data-set-card"
+          >
+            <ng-template #cardExtra>
+              <button nz-button nzType="text" nzSize="small" (click)="openEditModal(dataSet)">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button nz-button nzType="text" nzSize="small" nzDanger (click)="deleteDataSet(dataSet)">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </ng-template>
+
+            <p>{{ dataSet.description || 'No description' }}</p>
+            <nz-tag>{{ dataSet.data.length }} items</nz-tag>
+            
+            <div class="preview">
+              <h4>Preview:</h4>
+              <div class="preview-items">
+                <div *ngFor="let item of dataSet.data.slice(0, 3)" class="preview-item">
+                  <span>{{ item.label || item.name }}</span>
+                </div>
+                <div *ngIf="dataSet.data.length > 3" class="more-items">
+                  +{{ dataSet.data.length - 3 }} more
+                </div>
+              </div>
+            </div>
+          </nz-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nz-modal 
+    [(nzVisible)]="isModalVisible"
+    [nzTitle]="editingDataSet ? 'Edit Data Set' : 'Create Data Set'"
+    (nzOnCancel)="isModalVisible = false"
+    (nzOnOk)="saveDataSet()"
+    nzWidth="800px"
+  >
+    <div *nzModalContent>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Name</label>
+          <input nz-input [(ngModel)]="newDataSet.name" placeholder="Enter data set name">
+        </div>
+        <div class="form-field">
+          <label>Type</label>
+          <nz-select [(ngModel)]="newDataSet.type" [nzDisabled]="!!editingDataSet">
+            <nz-option nzValue="options" nzLabel="Options"></nz-option>
+            <nz-option nzValue="icons" nzLabel="Icons"></nz-option>
+            <nz-option nzValue="images" nzLabel="Images"></nz-option>
+            <nz-option nzValue="custom" nzLabel="Custom"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+      
+      <div class="form-field">
+        <label>Description</label>
+        <textarea nz-input [(ngModel)]="newDataSet.description" placeholder="Enter description" rows="2"></textarea>
+      </div>
+
+      <div class="items-section" *ngIf="editingDataSet || newDataSet.type">
+        <h3>Items</h3>
+        
+        <div class="add-item-form">
+          <h4>Add New Item</h4>
+          <div class="form-row">
+            <div *ngFor="let field of getItemFields(newDataSet.type!)" class="form-field">
+              <label>{{ field | titlecase }}</label>
+              <input 
+                nz-input 
+                [(ngModel)]="newItem[field]" 
+                [placeholder]="'Enter ' + field"
+              >
+            </div>
+          </div>
+          <button nz-button nzType="dashed" (click)="addItemToCurrentDataSet()">
+            <span nz-icon nzType="plus"></span>
+            Add Item
+          </button>
+        </div>
+
+        <div class="items-list">
+          <h4>Existing Items ({{ (editingDataSet?.data || newDataSet.data)?.length || 0 }})</h4>
+          <nz-table 
+            #itemsTable 
+            [nzData]="editingDataSet?.data || newDataSet.data || []" 
+            [nzFrontPagination]="false"
+            nzSize="small"
+          >
+            <thead>
+              <tr>
+                <th *ngFor="let field of getItemFields(newDataSet.type!)">{{ field | titlecase }}</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of itemsTable.data; let i = index">
+                <td *ngFor="let field of getItemFields(newDataSet.type!)">
+                  {{ item[field] }}
+                </td>
+                <td>
+                  <button nz-button nzType="text" nzSize="small" nzDanger (click)="removeItemFromCurrentDataSet(i)">
+                    <span nz-icon nzType="delete"></span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </div>
+      </div>
+    </div>
+  </nz-modal>
+</div>

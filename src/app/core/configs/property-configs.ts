@@ -227,25 +227,42 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
   },
   
   // Layout properties
+  autoExpand: {
+    name: 'autoExpand',
+    type: PropertyType.BOOLEAN,
+    label: 'Auto Expand',
+    description: 'When enabled, the element expands to fill available space',
+    defaultValue: true
+  },
   width: {
     name: 'width',
     type: PropertyType.DIMENSION,
     label: 'Width',
-    description: 'Width of the element',
+    description: 'Width of the element (applies when auto-expand is disabled)',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM]
+    defaultValue: { value: 100, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   height: {
     name: 'height',
     type: PropertyType.DIMENSION,
     label: 'Height',
-    description: 'Height of the element',
+    description: 'Height of the element (applies when auto-expand is disabled)',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.EM, DimensionUnit.REM]
+    defaultValue: { value: 100, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   minWidth: {
     name: 'minWidth',
@@ -254,8 +271,13 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
     description: 'Minimum width of the element',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM]
+    defaultValue: { value: 0, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   maxWidth: {
     name: 'maxWidth',
@@ -264,8 +286,13 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
     description: 'Maximum width of the element',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM]
+    defaultValue: { value: 100, unit: DimensionUnit.PERCENT },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   minHeight: {
     name: 'minHeight',
@@ -274,8 +301,13 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
     description: 'Minimum height of the element',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.EM, DimensionUnit.REM]
+    defaultValue: { value: 0, unit: DimensionUnit.PX },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   maxHeight: {
     name: 'maxHeight',
@@ -284,15 +316,13 @@ export const COMMON_PROPERTY_DEFINITIONS: Record<string, PropertyDefinition> = {
     description: 'Maximum height of the element',
     min: 0,
     max: 2000,
-    defaultUnit: DimensionUnit.PX,
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.EM, DimensionUnit.REM]
-  },
-  autoExpand: {
-    name: 'autoExpand',
-    type: PropertyType.BOOLEAN,
-    label: 'Auto Expand',
-    description: 'When enabled, the element expands to full width/height of its container',
-    defaultValue: true
+    defaultValue: { value: 100, unit: DimensionUnit.PERCENT },
+    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT, DimensionUnit.EM, DimensionUnit.REM],
+    condition: {
+      field: 'autoExpand',
+      operator: 'equals',
+      value: false
+    }
   },
   
   // Validation properties
@@ -355,134 +385,6 @@ export function createPropertyDefinition(
  */
 export function getPropertyConfig(type: PropertyType): Partial<PropertyDefinition> {
   return DEFAULT_PROPERTY_CONFIG[type] || {};
-} '#000000',
-    placeholder: '#000000'
-  },
-  backgroundColor: {
-    name: 'backgroundColor',
-    type: PropertyType.COLOR,
-    label: 'Background Color',
-    description: 'Background color value',
-    defaultValue: '#ffffff',
-    placeholder: '#ffffff'
-  },
-  borderColor: {
-    name: 'borderColor',
-    type: PropertyType.COLOR,
-    label: 'Border Color',
-    description: 'Border color value',
-    defaultValue: '#cccccc',
-    placeholder: '#cccccc'
-  },
-  borderWidth: {
-    name: 'borderWidth',
-    type: PropertyType.DIMENSION,
-    label: 'Border Width',
-    description: 'Border width',
-    min: 0,
-    max: 20,
-    defaultValue: { value: 1, unit: DimensionUnit.PX },
-    dimensionUnits: [DimensionUnit.PX]
-  },
-  borderStyle: {
-    name: 'borderStyle',
-    type: PropertyType.BORDER_STYLE,
-    label: 'Border Style',
-    description: 'Border style',
-    defaultValue: BorderStyleOption.SOLID,
-    options: [
-      { label: 'None', value: BorderStyleOption.NONE },
-      { label: 'Solid', value: BorderStyleOption.SOLID },
-      { label: 'Dashed', value: BorderStyleOption.DASHED },
-      { label: 'Dotted', value: BorderStyleOption.DOTTED },
-      { label: 'Double', value: BorderStyleOption.DOUBLE },
-      { label: 'Groove', value: BorderStyleOption.GROOVE },
-      { label: 'Ridge', value: BorderStyleOption.RIDGE },
-      { label: 'Inset', value: BorderStyleOption.INSET },
-      { label: 'Outset', value: BorderStyleOption.OUTSET }
-    ] as SelectOption[]
-  },
-  borderRadius: {
-    name: 'borderRadius',
-    type: PropertyType.DIMENSION,
-    label: 'Border Radius',
-    description: 'Border radius',
-    min: 0,
-    max: 50,
-    defaultValue: { value: 4, unit: DimensionUnit.PX },
-    dimensionUnits: [DimensionUnit.PX, DimensionUnit.PERCENT]
-  },
-  fontSize: {
-    name: 'fontSize',
-    type: PropertyType.DIMENSION,
-    label: 'Font Size',
-    description: 'Font size',
-    min: 8,
-    max: 72,
-    defaultValue: { value: 14, unit: DimensionUnit.PX },
-    dimensionUnits: [DimensionUnit.PX]
-  },
-  fontWeight: {
-    name: 'fontWeight',
-    type: PropertyType.FONT_WEIGHT,
-    label: 'Font Weight',
-    description: 'Font weight',
-    defaultValue: FontWeightOption.NORMAL,
-    options: [
-      { label: 'Normal', value: FontWeightOption.NORMAL },
-      { label: 'Bold', value: FontWeightOption.BOLD },
-      { label: 'Bolder', value: FontWeightOption.BOLDER },
-      { label: 'Lighter', value: FontWeightOption.LIGHTER }
-    ] as SelectOption[]
-  },
-  padding: {
-    name: 'padding',
-    type: PropertyType.TEXT,
-    label: 'Padding',
-    description: 'CSS padding value',
-    placeholder: 'e.g., 8px 16px'
-  },
-  margin: {
-    name: 'margin',
-    type: PropertyType.TEXT,
-    label: 'Margin',
-    description: 'CSS margin value',
-    placeholder: 'e.g., 0 0 16px 0'
-  }
-};
-
-/**
- * Create a property definition with common configuration
- * 
- * @param name Property name
- * @param label Property label
- * @param type Property type
- * @param overrides Additional property configuration to override defaults
- * @returns A complete property definition
- */
-export function createPropertyDefinition(
-  name: string,
-  label: string,
-  type: PropertyType,
-  overrides: Partial<PropertyDefinition> = {}
-): PropertyDefinition {
-  // Get the default configuration for this property type
-  const defaultConfig = DEFAULT_PROPERTY_CONFIG[type] || {};
-  
-  // Get the common property definition if it exists
-  const commonProperty = COMMON_PROPERTY_DEFINITIONS[name];
-  
-  // Start with the basic property definition
-  const propertyDefinition: PropertyDefinition = {
-    ...defaultConfig,
-    ...(commonProperty || {}),
-    ...overrides,
-    name,
-    type,
-    label
-  };
-  
-  return propertyDefinition;
 }
 
 /**
@@ -498,7 +400,7 @@ export function createTextPropertyDefinition(
   label: string,
   overrides: Partial<PropertyDefinition> = {}
 ): PropertyDefinition {
-  return createPropertyDefinition(name, label, PropertyType.TEXT, {
+  return createPropertyDefinition(name, PropertyType.TEXT, label, {
     ...TEXT_PROPERTY_CONFIG,
     ...overrides
   });
@@ -517,7 +419,7 @@ export function createNumberPropertyDefinition(
   label: string,
   overrides: Partial<PropertyDefinition> = {}
 ): PropertyDefinition {
-  return createPropertyDefinition(name, label, PropertyType.NUMBER, {
+  return createPropertyDefinition(name, PropertyType.NUMBER, label, {
     ...NUMBER_PROPERTY_CONFIG,
     ...overrides
   });
@@ -536,7 +438,7 @@ export function createBooleanPropertyDefinition(
   label: string,
   overrides: Partial<PropertyDefinition> = {}
 ): PropertyDefinition {
-  return createPropertyDefinition(name, label, PropertyType.BOOLEAN, {
+  return createPropertyDefinition(name, PropertyType.BOOLEAN, label, {
     ...BOOLEAN_PROPERTY_CONFIG,
     ...overrides
   });
@@ -557,7 +459,7 @@ export function createSelectPropertyDefinition(
   options: SelectOption[],
   overrides: Partial<PropertyDefinition> = {}
 ): PropertyDefinition {
-  return createPropertyDefinition(name, label, PropertyType.SELECT, {
+  return createPropertyDefinition(name, PropertyType.SELECT, label, {
     ...SELECT_PROPERTY_CONFIG,
     options,
     ...overrides
@@ -577,7 +479,7 @@ export function createDimensionPropertyDefinition(
   label: string,
   overrides: Partial<PropertyDefinition> = {}
 ): PropertyDefinition {
-  return createPropertyDefinition(name, label, PropertyType.DIMENSION, {
+  return createPropertyDefinition(name, PropertyType.DIMENSION, label, {
     ...DIMENSION_PROPERTY_CONFIG,
     ...overrides
   });
