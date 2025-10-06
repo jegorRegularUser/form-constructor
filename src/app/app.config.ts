@@ -19,6 +19,10 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzMessageModule } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
 // Services
 import { IconRegistryService } from './core/services/icon-registry.service';
@@ -44,7 +48,11 @@ export const appConfig: ApplicationConfig = {
       NzCollapseModule,
       NzGridModule,
       NzToolTipModule,
-      NzIconModule
+      NzIconModule,
+      NzButtonModule,
+      NzFormModule,
+      NzMessageModule,
+      NzModalModule
     ),
     provideHttpClient(),
     provideAnimationsAsync()

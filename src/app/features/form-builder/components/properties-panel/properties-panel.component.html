@@ -7,15 +7,7 @@
         <span nz-icon nzType="setting" nzTheme="outline"></span>
         Properties
       </h3>
-      <button 
-        nz-button 
-        nzType="text" 
-        nzSize="small" 
-        (click)="togglePanel()"
-        class="toggle-btn"
-      >
-        <span nz-icon [nzType]="panelCollapsed ? 'left' : 'right'"></span>
-      </button>
+      
     </div>
     
     <div class="element-info" *ngIf="selectedElementId && !panelCollapsed">
@@ -26,13 +18,7 @@
 
   <!-- Panel Content -->
   <div class="panel-content" *ngIf="selectedElementId && !panelCollapsed">
-    <!-- Debug info (можно убрать после отладки) -->
-    <div class="debug-info" style="background: #f0f0f0; padding: 8px; margin: 8px; border-radius: 4px; font-size: 11px;">
-      <strong>Debug:</strong> 
-      Element: {{selectedElementId}} | 
-      Type: {{elementType}} | 
-      AutoExpand: {{propertiesForm.get('autoExpand')?.value}}
-    </div>
+
 
     <!-- Action Bar -->
     <div class="action-bar">
@@ -194,19 +180,31 @@
                       </div>
 
                       <div *ngIf="optionsSource === 'dataset'" class="dataset-options">
-                        <nz-select
-                          [(ngModel)]="selectedDataSetId"
-                          [ngModelOptions]="{standalone: true}"
-                          (ngModelChange)="onOptionsSourceChange(property.name, 'dataset', $event)"
-                          nzPlaceHolder="Select data set"
-                        >
-                          <nz-option 
-                            *ngFor="let dataSet of optionsDataSets" 
-                            [nzLabel]="dataSet.name" 
-                            [nzValue]="dataSet.id"
-                          ></nz-option>
-                        </nz-select>
-                        
+                        <div class="dataset-selector">
+                          <nz-select
+                            [(ngModel)]="selectedDataSetId"
+                            [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onOptionsSourceChange(property.name, 'dataset', $event)"
+                            nzPlaceHolder="Select data set"
+                            style="flex: 1;"
+                          >
+                            <nz-option 
+                              *ngFor="let dataSet of optionsDataSets" 
+                              [nzLabel]="dataSet.name" 
+                              [nzValue]="dataSet.id"
+                            ></nz-option>
+                          </nz-select>
+                          <button 
+                            nz-button 
+                            nzType="primary" 
+                            nzSize="small"
+                            (click)="openDataSetsManager()"
+                            nz-tooltip
+                            nzTooltipTitle="Add New Dataset"
+                          >
+                            <span nz-icon nzType="plus"></span>
+                          </button>
+                        </div>
                         <div class="options-preview" *ngIf="selectedDataSetId">
                           <h4>Preview:</h4>
                           <div class="preview-options">

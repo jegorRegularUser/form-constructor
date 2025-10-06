@@ -18,6 +18,7 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 import { ElementSelectionService } from '../../../../core/services/element-selection.service';
 import { ElementStateService } from '../../../../core/services/element-state.service';
@@ -25,6 +26,7 @@ import { PropertySection, PropertyGroup, PropertyDefinition } from '../../../../
 import { PropertyType, DimensionUnit } from '../../../../core/enums/property-type.enum';
 import { getElementPropertySections } from '../../../../core/configs/element-property-sections';
 import { DataSetsService, DataSet, OptionItem } from '../../../../core/services/data-sets.service';
+import { DataSetsManagerComponent } from '../data-sets-manager/data-sets-manager.component';
 
 @Component({
   selector: 'app-properties-panel',
@@ -48,7 +50,8 @@ import { DataSetsService, DataSet, OptionItem } from '../../../../core/services/
     NzTagModule,
     NzEmptyModule,
     NzToolTipModule,
-    NzRadioModule
+    NzRadioModule,
+    NzModalModule
   ],
   templateUrl: './properties-panel.component.html',
   styleUrls: ['./properties-panel.component.scss']
@@ -77,7 +80,8 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
     private elementStateService: ElementStateService,
     private fb: FormBuilder,
     private message: NzMessageService,
-    private dataSetsService: DataSetsService
+    private dataSetsService: DataSetsService,
+    private modal: NzModalService
   ) {
     this.propertiesForm = this.fb.group({});
   }
@@ -393,5 +397,14 @@ export class PropertiesPanelComponent implements OnInit, OnDestroy {
       this.propertiesForm.get(propertyName)?.setValue([...currentOptions]);
       this.propertiesForm.get(propertyName)?.markAsDirty();
     }
+  }
+
+  openDataSetsManager(): void {
+    this.modal.create({
+      nzTitle: 'Data Sets Manager',
+      nzContent: DataSetsManagerComponent,
+      nzWidth: '80%',
+      nzFooter: null
+    });
   }
 }

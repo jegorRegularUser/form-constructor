@@ -60,7 +60,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 
     .editor-container {
       flex: 1;
-      padding: 16px;
+      padding: 0 16px 16px;
       overflow: auto;
     }
 

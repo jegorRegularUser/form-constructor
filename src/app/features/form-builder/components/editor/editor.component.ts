@@ -29,6 +29,9 @@ import { BaseFormBlockComponent } from '../../../../shared/components/form-eleme
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { EditorToolbarComponent, EditorMode } from './editor-toolbar.component';
+import { FormPreviewComponent } from './form-preview.component';
+import { CodeViewerComponent } from './code-viewer.component';
 
 // Базовый интерфейс для всех элементов редактора
 export interface BaseEditorComponent {
@@ -40,13 +43,25 @@ export interface BaseEditorComponent {
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, InputComponent, TextareaComponent, ButtonElementComponent, SelectElementComponent],
+  imports: [
+    CommonModule, 
+    InputComponent, 
+    TextareaComponent, 
+    ButtonElementComponent, 
+    SelectElementComponent,
+    EditorToolbarComponent,
+    FormPreviewComponent,
+    CodeViewerComponent
+  ],
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.css'],
 })
 export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() sidebarCollapsed = false;
   private destroy$ = new Subject<void>();
+  
+  // Режимы отображения
+  currentMode: EditorMode = 'editor';
   // Универсальный QueryList для всех типов компонентов
   @ViewChildren('inputElement') inputElements!: QueryList<BaseEditorComponent>;
   @ViewChildren('textareaElement') textareaElements!: QueryList<BaseEditorComponent>;
@@ -171,7 +186,8 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
   onMouseMove(event: MouseEvent) {
     if (!this.dragData) return;
 
-    const editorRect = this.elementRef.nativeElement.getBoundingClientRect();
+    const editorElement  = this.elementRef.nativeElement.querySelector('.editor') as HTMLElement;
+    const editorRect = editorElement.getBoundingClientRect();
     const mouseX = event.clientX - editorRect.left;
     const mouseY = event.clientY - editorRect.top;
 
@@ -197,40 +213,41 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     this.currentDropPosition = null;
   }
 
-  onExistingElementDragStart(
-    event: MouseEvent,
-    id: string,
-    rowIndex: number,
-    colIndex: number
-  ) {
+onExistingElementDragStart(
+  event: MouseEvent,
+  id: string,
+  rowIndex: number,
+  colIndex: number
+) {
+  this.dragStateService.setDragData({
+    type: 'existing',
+    id,
+    rowIndex,
+    colIndex,
+  });
 
-    this.dragStateService.setDragData({
-      type: 'existing',
-      id,
-      rowIndex,
-      colIndex,
-    });
+  const moveListener = (e: MouseEvent) => {
+    // Используем правильный элемент редактора
+    const editorElement = this.elementRef.nativeElement.querySelector('.editor') as HTMLElement;
+    const editorRect = editorElement.getBoundingClientRect();
+    const mouseX = e.clientX - editorRect.left;
+    const mouseY = e.clientY - editorRect.top;
+    this.calculateDropPosition(mouseX, mouseY, editorRect);
+  };
 
-    const moveListener = (e: MouseEvent) => {
-      const editorRect = this.elementRef.nativeElement.getBoundingClientRect();
-      const mouseX = e.clientX - editorRect.left;
-      const mouseY = e.clientY - editorRect.top;
-      this.calculateDropPosition(mouseX, mouseY, editorRect);
-    };
+  const upListener = () => {
+    this.dragStateService.clearDragData();
+    this.dragStateService.notifyDragEnd();
+    document.removeEventListener('mousemove', moveListener);
+    document.removeEventListener('mouseup', upListener);
+  };
 
-    const upListener = () => {
-      this.dragStateService.clearDragData();
-      this.dragStateService.notifyDragEnd();
-      document.removeEventListener('mousemove', moveListener);
-      document.removeEventListener('mouseup', upListener);
-    };
+  document.addEventListener('mousemove', moveListener);
+  document.addEventListener('mouseup', upListener);
 
-    document.addEventListener('mousemove', moveListener);
-    document.addEventListener('mouseup', upListener);
-
-    event.preventDefault();
-    event.stopPropagation();
-  }
+  event.preventDefault();
+  event.stopPropagation();
+}
 
   // Add method to handle element selection
   onElementClick(elementId: string, event: MouseEvent) {
@@ -420,7 +437,7 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
     const rowBottom = this.getRowBottom(rowIndex, elementNodes, editorRect);
     // Статичные размеры
     this.dropIndicatorWidth = 3;
-    this.dropIndicatorHeight = rowBottom - rowTop - 20;
+    this.dropIndicatorHeight =  rowBottom - rowTop - 15;
 
     if (positionInRow.position === 'left' && positionInRow.element) {
       const rect = positionInRow.element.getNativeElement().getBoundingClientRect();
@@ -1114,4 +1131,16 @@ export class EditorComponent implements AfterViewInit, OnInit, OnDestroy {
       this.resetForm();
     }
   }
+  
+  // Добавляем методы для работы с режимами
+  onModeChange(mode: EditorMode): void {
+    this.currentMode = mode;
+    if (mode !== 'editor') {
+    this.showDropIndicator = false;
+    this.currentDropPosition = null;
+    this.dragStateService.setDropPosition(null);
+  }
+  }
+
+
 }
